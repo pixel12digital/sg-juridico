@@ -1,0 +1,27 @@
+# Ignorar documentação
+*.md
+*.txt
+*.zip
+*.sql
+
+# Ignorar public_html
+public_html/
+
+# Ignorar diretórios específicos
+ATIVAR-TEMA-SG-JURIDICO.txt
+remove_vestiges.sql
+sg_juridico_public_html.zip
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules/
+package-lock.json
+
+# Logs
+*.log
