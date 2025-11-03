@@ -18,12 +18,14 @@ class DB_Connection_Manager {
     private static $connection_cache = null;
     
     public function __construct() {
-        // Ativa em todos os ambientes (localhost e produção)
-        // Filtra a classe wpdb para limitar conexões
-        add_filter('wp_db_connection', array($this, 'limit_db_connections'), 10, 4);
+        // Verificar se funções do WordPress estão disponíveis
+        if (!function_exists('add_action') || !function_exists('add_filter')) {
+            return; // WordPress ainda não carregou
+        }
         
-        // Intercepta erros de conexão
-        add_action('wp_db_query_error', array($this, 'handle_connection_error'), 10, 2);
+        // Ativa em todos os ambientes (localhost e produção)
+        // NOTA: Os filtros 'wp_db_connection' e 'wp_db_query_error' não existem no WordPress padrão
+        // Removidos para evitar erros fatais
         
         // Desabilita queries desnecessárias
         add_action('init', array($this, 'reduce_database_queries'), 1);
@@ -62,43 +64,9 @@ class DB_Connection_Manager {
         return $value;
     }
     
-    /**
-     * Limita tentativas de conexão
-     */
-    public function limit_db_connections($connection, $dbuser, $dbpassword, $dbname) {
-        $current_time = time();
-        
-        // Reset contador a cada minuto
-        if ($current_time - self::$last_attempt_time > 60) {
-            self::$connection_attempts = 0;
-            self::$last_attempt_time = $current_time;
-        }
-        
-        // Se excedeu limite, aguarda
-        if (self::$connection_attempts >= self::$max_attempts_per_minute) {
-            $wait_time = 60 - ($current_time - self::$last_attempt_time);
-            if ($wait_time > 0) {
-                sleep(min($wait_time, 5)); // Máximo 5 segundos de espera
-            }
-            self::$connection_attempts = 0;
-        }
-        
-        self::$connection_attempts++;
-        self::$last_attempt_time = $current_time;
-        
-        return $connection;
-    }
-    
-    /**
-     * Trata erros de conexão
-     */
-    public function handle_connection_error($error, $query) {
-        // Se for erro de limite de conexões, aguarda antes de tentar novamente
-        if (strpos($error, 'max_connections_per_hour') !== false) {
-            error_log('DB Connection Manager: Limite de conexões excedido. Aguardando...');
-            sleep(2); // Aguarda 2 segundos antes de permitir nova tentativa
-        }
-    }
+    // Funções removidas: limit_db_connections e handle_connection_error
+    // Os hooks 'wp_db_connection' e 'wp_db_query_error' não existem no WordPress padrão
+    // As otimizações de consultas e cache são suficientes para reduzir conexões
     
     /**
      * Habilita cache de objetos
@@ -150,5 +118,8 @@ class DB_Connection_Manager {
 }
 
 // Inicializa em todos os ambientes para otimizar conexões
-new DB_Connection_Manager();
+// Apenas se o WordPress já tiver carregado as funções necessárias
+if (function_exists('add_action') && function_exists('add_filter')) {
+    new DB_Connection_Manager();
+}
 
