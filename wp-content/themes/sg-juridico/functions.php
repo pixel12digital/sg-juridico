@@ -3823,24 +3823,12 @@ function sg_get_home_banner_images() {
 		foreach ( $ids as $id ) {
 			$id = absint( trim( $id ) );
 			if ( $id > 0 ) {
-				$banner_image_ids[] = $id;
+				// Verificar se a imagem ainda existe antes de adicionar
+				$image_url = wp_get_attachment_image_url( $id, 'full' );
+				if ( $image_url ) {
+					$banner_image_ids[] = $id;
+				}
 			}
-		}
-	}
-	
-	// Se não houver imagens configuradas, buscar imagens da biblioteca
-	if ( empty( $banner_image_ids ) ) {
-		$args = array(
-			'post_type'      => 'attachment',
-			'post_mime_type' => 'image',
-			'posts_per_page' => 3,
-			'orderby'        => 'rand',
-			'post_status'    => 'inherit',
-		);
-		
-		$attachments = get_posts( $args );
-		foreach ( $attachments as $attachment ) {
-			$banner_image_ids[] = $attachment->ID;
 		}
 	}
 	
