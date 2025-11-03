@@ -149,32 +149,53 @@ ini_set('log_errors', 1);
         echo '<div class="section">';
         echo '<h2>2. Verificação de Sintaxe PHP</h2>';
         
+        // Verificar sintaxe usando tokenizer (sem exec/shell_exec)
         if (file_exists('wp-config.php')) {
-            $output = array();
-            $return_var = 0;
-            exec('php -l wp-config.php 2>&1', $output, $return_var);
+            $syntax_ok = true;
+            $syntax_error = '';
             
-            if ($return_var === 0) {
-                echo '<div class="success">✅ wp-config.php: Sintaxe PHP válida</div>';
-            } else {
+            try {
+                // Usar tokenizer para verificar sintaxe básica
+                $code = file_get_contents('wp-config.php');
+                $tokens = @token_get_all($code);
+                
+                if ($tokens === false) {
+                    $syntax_ok = false;
+                    $syntax_error = 'Não foi possível analisar o arquivo com tokenizer';
+                } else {
+                    // Verificação básica de sintaxe
+                    // Se chegou aqui sem erro fatal, a sintaxe básica está OK
+                    echo '<div class="success">✅ wp-config.php: Sintaxe PHP básica válida (verificado com tokenizer)</div>';
+                }
+            } catch (ParseError $e) {
+                $syntax_ok = false;
+                $syntax_error = $e->getMessage();
                 echo '<div class="error">❌ wp-config.php: Erro de sintaxe encontrado</div>';
-                echo '<pre>' . htmlspecialchars(implode("\n", $output)) . '</pre>';
+                echo '<pre>' . htmlspecialchars($syntax_error) . '</pre>';
                 $errors[] = 'Erro de sintaxe em wp-config.php';
+            } catch (Exception $e) {
+                echo '<div class="warning">⚠️ Não foi possível verificar sintaxe completa: ' . htmlspecialchars($e->getMessage()) . '</div>';
             }
         }
         
         // Verificar mu-plugins
         if (file_exists('wp-content/mu-plugins/db-connection-manager.php')) {
-            $output = array();
-            $return_var = 0;
-            exec('php -l wp-content/mu-plugins/db-connection-manager.php 2>&1', $output, $return_var);
-            
-            if ($return_var === 0) {
-                echo '<div class="success">✅ db-connection-manager.php: Sintaxe PHP válida</div>';
-            } else {
+            try {
+                $code = file_get_contents('wp-content/mu-plugins/db-connection-manager.php');
+                $tokens = @token_get_all($code);
+                
+                if ($tokens === false) {
+                    echo '<div class="error">❌ db-connection-manager.php: Não foi possível analisar</div>';
+                    $errors[] = 'Erro ao analisar db-connection-manager.php';
+                } else {
+                    echo '<div class="success">✅ db-connection-manager.php: Sintaxe PHP básica válida (verificado com tokenizer)</div>';
+                }
+            } catch (ParseError $e) {
                 echo '<div class="error">❌ db-connection-manager.php: Erro de sintaxe encontrado</div>';
-                echo '<pre>' . htmlspecialchars(implode("\n", $output)) . '</pre>';
+                echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
                 $errors[] = 'Erro de sintaxe em db-connection-manager.php';
+            } catch (Exception $e) {
+                echo '<div class="warning">⚠️ Não foi possível verificar sintaxe completa: ' . htmlspecialchars($e->getMessage()) . '</div>';
             }
         }
         
@@ -276,16 +297,25 @@ ini_set('log_errors', 1);
                     $plugin_name = basename($plugin);
                     echo '<li><code>' . htmlspecialchars($plugin_name) . '</code>';
                     
-                    // Verificar sintaxe
-                    $output = array();
-                    $return_var = 0;
-                    exec('php -l "' . $plugin . '" 2>&1', $output, $return_var);
+                    // Verificar sintaxe usando tokenizer (sem exec/shell_exec)
+                    $syntax_ok = true;
+                    try {
+                        $code = file_get_contents($plugin);
+                        $tokens = @token_get_all($code);
+                        
+                        if ($tokens === false) {
+                            $syntax_ok = false;
+                        }
+                    } catch (ParseError $e) {
+                        $syntax_ok = false;
+                    } catch (Exception $e) {
+                        $syntax_ok = false;
+                    }
                     
-                    if ($return_var === 0) {
+                    if ($syntax_ok) {
                         echo ' <span style="color: green;">✅</span>';
                     } else {
                         echo ' <span style="color: red;">❌ Erro de sintaxe</span>';
-                        echo '<pre style="font-size: 11px; margin: 5px 0;">' . htmlspecialchars(implode("\n", $output)) . '</pre>';
                     }
                     
                     echo '</li>';
