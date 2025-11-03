@@ -1,0 +1,130 @@
+/**
+ * Paleta de Cores Oficial - SG Jurídico
+ * Cores: #5CE1E6 (ciano), #484848 (cinza escuro), #000000 (preto), #FFFFFF (branco), #F0F0F0 (cinza claro)
+ */
+
+:root {
+	/* Cores Principais */
+	--sg-color-primary: #5CE1E6;
+	--sg-color-primary-dark: #4BC4C8;
+	--sg-color-primary-light: #7DE9ED;
+	
+	/* Cores Neutras */
+	--sg-color-gray-dark: #484848;
+	--sg-color-gray: #808080;
+	--sg-color-gray-light: #F0F0F0;
+	--sg-color-black: #000000;
+	--sg-color-white: #FFFFFF;
+	
+	/* Cores Contextuais */
+	--sg-color-text: #000000;
+	--sg-color-text-secondary: #484848;
+	--sg-color-text-light: #808080;
+	--sg-color-text-inverse: #FFFFFF;
+	
+	--sg-color-bg-primary: #FFFFFF;
+	--sg-color-bg-secondary: #F0F0F0;
+	--sg-color-bg-dark: #484848;
+	
+	--sg-color-border: #E0E0E0;
+	--sg-color-border-dark: #484848;
+	
+	/* Elementos Interativos */
+	--sg-color-link: #5CE1E6;
+	--sg-color-link-hover: #4BC4C8;
+	--sg-color-button-bg: #5CE1E6;
+	--sg-color-button-hover: #4BC4C8;
+	--sg-color-button-text: #000000;
+	
+	/* Headers e Títulos */
+	--sg-color-heading: #000000;
+	--sg-color-heading-secondary: #484848;
+	
+	/* Status e Feedback */
+	--sg-color-success: #4CAF50;
+	--sg-color-warning: #FF9800;
+	--sg-color-error: #F44336;
+	--sg-color-info: #5CE1E6;
+}
+
+/* Aplicação Global das Cores */
+body {
+	color: var(--sg-color-text);
+	background-color: var(--sg-color-bg-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: var(--sg-color-heading);
+}
+
+a {
+	color: var(--sg-color-link);
+}
+
+a:hover,
+a:focus {
+	color: var(--sg-color-link-hover);
+}
+
+/* Botões */
+.button,
+button,
+input[type="submit"],
+input[type="button"],
+.site-header button {
+	background-color: var(--sg-color-button-bg);
+	color: var(--sg-color-button-text);
+	border: none;
+	transition: background-color 0.3s ease;
+	padding: 12px 24px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.button:hover,
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+	background-color: var(--sg-color-button-hover);
+}
+
+/* Header */
+.site-header {
+	background-color: var(--sg-color-white);
+	border-bottom: 1px solid var(--sg-color-border);
+}
+
+/* Footer */
+.site-footer {
+	background-color: var(--sg-color-bg-dark);
+	color: var(--sg-color-text-inverse);
+}
+
+.site-footer a {
+	color: var(--sg-color-primary);
+}
+
+/* Borders */
+hr {
+	border-color: var(--sg-color-border);
+}
+
+/* WooCommerce */
+.woocommerce ul.products li.product .price {
+	color: var(--sg-color-primary);
+}
+
+.woocommerce .button,
+.woocommerce button.button,
+.woocommerce a.button {
+	background-color: var(--sg-color-button-bg);
+	color: var(--sg-color-button-text);
+}
+
+.woocommerce .button:hover,
+.woocommerce button.button:hover,
+.woocommerce a.button:hover {
+	background-color: var(--sg-color-button-hover);
+}
+

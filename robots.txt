@@ -1,0 +1,3 @@
+User-agent:*
+Disalow:/wp-admin/
+Sitemap:https://sgjuridico.com.br/?sitemap.xml

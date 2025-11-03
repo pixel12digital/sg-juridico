@@ -1,0 +1,434 @@
+/* SG Jurídico — My Account optimized styles */
+
+/* Scope strictly to WooCommerce account pages to avoid bleed */
+body.woocommerce-account {
+  --sg-card-bg: #fff;
+  --sg-card-border: var(--sg-color-border);
+  --sg-card-shadow: 0 4px 16px rgba(0,0,0,.06);
+  /* Override palette variables on account pages so buttons/links keep readable text */
+  --sg-color-button-text: #111;
+  --sg-color-link: #111;
+  --sg-color-link-hover: #111;
+}
+
+/* Container spacing */
+body.woocommerce-account .site-main .container,
+body.woocommerce-account .woocommerce {
+  max-width: 1200px;
+}
+
+/* Remove container padding specifically on the account template to avoid extra left space */
+.page-template-account-sidebar .site-main .container { padding-left: 0 !important; padding-right: 0 !important; max-width: 100% !important; width: 100% !important; }
+.page-template-account-sidebar .site-main, .page-template-account-sidebar .entry-content { padding: 0 !important; margin: 0 !important; }
+.page-template-account-sidebar .woocommerce { padding: 0 !important; max-width: 100% !important; width: 100% !important; }
+
+/* Template: Minha Conta (Sidebar) */
+/* Use multiple selectors to catch WP body classes for templates in subfolders */
+body[class*="page-template"][class*="account-sidebar"] .sg-my-account-layout,
+.page-template-account-sidebar .sg-my-account-layout {
+  display: grid !important;
+  grid-template-columns: 160px 1fr !important; /* slimmer sidebar */
+  gap: 20px !important; /* breathing space between sidebar and content */
+  align-items: start !important;
+}
+body[class*="page-template"][class*="account-sidebar"] .sg-my-account-sidebar nav.woocommerce-MyAccount-navigation,
+.page-template-account-sidebar .sg-my-account-sidebar nav.woocommerce-MyAccount-navigation {
+  position: sticky !important;
+  top: 20px !important;
+}
+body[class*="page-template"][class*="account-sidebar"] nav.woocommerce-MyAccount-navigation ul,
+.page-template-account-sidebar nav.woocommerce-MyAccount-navigation ul {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+/* Neutralize any float fallback when the template/wrapper is present */
+body[class*="page-template"][class*="account-sidebar"] .woocommerce-MyAccount-content,
+.page-template-account-sidebar .woocommerce-MyAccount-content,
+.sg-my-account-layout .woocommerce-MyAccount-content {
+  clear: none !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 8px 0 0 8px !important; /* subtle inner spacing near the table */
+}
+
+/* When wrapper exists, ensure nav/content sit side by side without leftover margins */
+.sg-my-account-layout nav.woocommerce-MyAccount-navigation { width: 220px !important; float: none !important; }
+.sg-my-account-layout .woocommerce-MyAccount-content { margin-left: 0 !important; }
+
+/* Ensure orders table uses full width of content area */
+.page-template-account-sidebar .woocommerce table.my_account_orders { width: 100% !important; }
+/* Body-scoped fallback (template class may not be present when template is forced) */
+body.woocommerce-account table.my_account_orders { width: 100% !important; }
+
+/* Increase spacing between table columns (Pedidos) */
+.page-template-account-sidebar .woocommerce table.my_account_orders,
+body.woocommerce-account table.my_account_orders {
+  border-collapse: separate !important;
+  border-spacing: 0 !important; /* keep row spacing tight */
+}
+.page-template-account-sidebar .woocommerce table.my_account_orders th,
+.page-template-account-sidebar .woocommerce table.my_account_orders td,
+body.woocommerce-account table.my_account_orders th,
+body.woocommerce-account table.my_account_orders td {
+  padding: 12px 18px !important; /* base cell padding */
+}
+/* Add extra left padding from the second column onward to create visual gaps */
+.page-template-account-sidebar .woocommerce table.my_account_orders th + th,
+.page-template-account-sidebar .woocommerce table.my_account_orders td + td,
+body.woocommerce-account table.my_account_orders th + th,
+body.woocommerce-account table.my_account_orders td + td {
+  padding-left: 28px !important;
+}
+/* Keep action buttons tidy */
+.page-template-account-sidebar .woocommerce table.my_account_orders td.order-actions,
+body.woocommerce-account table.my_account_orders td.order-actions {
+  white-space: nowrap !important;
+}
+
+/* Order number link in first column: force black for readability */
+.woocommerce-account table.my_account_orders td.order-number a,
+body.woocommerce-account table.my_account_orders td.order-number a,
+.page-template-account-sidebar .woocommerce table.my_account_orders td.order-number a {
+  color: #000 !important;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Two-column layout: left navigation (sidebar) + right content */
+body.woocommerce-account .sg-my-account-layout {
+  display: grid !important;
+  grid-template-columns: 260px 1fr !important;
+  gap: 24px !important;
+  align-items: start !important;
+}
+
+/* Fallback: apply grid on WooCommerce container when wrapper is not present */
+body.woocommerce-account .woocommerce {
+  display: grid !important;
+  grid-template-columns: 260px 1fr !important;
+  gap: 24px !important;
+  align-items: start !important;
+}
+
+/* Ensure proper column placement */
+body.woocommerce-account .woocommerce > nav.woocommerce-MyAccount-navigation { grid-column: 1 !important; }
+body.woocommerce-account .woocommerce > .woocommerce-MyAccount-content { grid-column: 2 !important; }
+
+/* Float fallback to guarantee side-by-side even if grid is overridden */
+/* Apply float fallback ONLY when nav/content are direct children of .woocommerce (no wrapper) */
+body.woocommerce-account .woocommerce > nav.woocommerce-MyAccount-navigation {
+  width: 260px !important;
+  float: left !important;
+}
+body.woocommerce-account .woocommerce > .woocommerce-MyAccount-content {
+  margin-left: 284px !important; /* 260 + 24 gap */
+  clear: none !important;
+  float: none !important;
+  width: auto !important;
+}
+/* Clearfix for container when floats are active */
+body.woocommerce-account .woocommerce::after,
+body.woocommerce-account .sg-my-account-layout::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Sidebar element */
+body.woocommerce-account .sg-my-account-sidebar {
+  align-self: start !important;
+}
+
+/* Sidebar wrapper behavior */
+body.woocommerce-account .sg-my-account-sidebar nav.woocommerce-MyAccount-navigation { position: sticky !important; top: 20px !important; }
+
+/* Grid navigation: convert list to responsive cards */
+body.woocommerce-account nav.woocommerce-MyAccount-navigation ul,
+body.woocommerce-account .woocommerce-MyAccount-content > ul {
+  list-style: none !important;
+  margin: 0 0 16px 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  overflow: visible !important;
+}
+
+body.woocommerce-account nav.woocommerce-MyAccount-navigation li,
+body.woocommerce-account .woocommerce-MyAccount-content > ul > li {
+  list-style: none !important;
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  min-height: 40px !important;
+}
+
+body.woocommerce-account nav.woocommerce-MyAccount-navigation li::marker,
+body.woocommerce-account .woocommerce-MyAccount-content > ul > li::marker {
+  content: "" !important;
+}
+
+body.woocommerce-account nav.woocommerce-MyAccount-navigation ul li a,
+body.woocommerce-account .woocommerce-MyAccount-content > ul > li > a {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  padding: 10px 12px !important;
+  line-height: 1.3 !important;
+  font-size: 14px !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+  background: var(--sg-card-bg) !important;
+  border: 1px solid var(--sg-card-border) !important;
+  border-radius: 10px !important;
+  text-decoration: none !important;
+  color: var(--sg-color-text) !important;
+  font-weight: 600 !important;
+  box-shadow: var(--sg-card-shadow) !important;
+  transition: all .2s ease;
+}
+
+body.woocommerce-account nav.woocommerce-MyAccount-navigation ul li a:hover,
+body.woocommerce-account .woocommerce-MyAccount-content > ul > li > a:hover,
+body.woocommerce-account nav.woocommerce-MyAccount-navigation ul li.is-active > a {
+  background: var(--sg-color-primary) !important;
+  border-color: var(--sg-color-primary) !important;
+  color: #000 !important;
+}
+
+/* Garantir mesma padding no estado ativo */
+body.woocommerce-account nav.woocommerce-MyAccount-navigation ul li.is-active > a {
+  padding: 10px 12px !important;
+  line-height: 1.3 !important;
+  height: auto !important;
+}
+
+/* Em telas médias/grandes, esconda a lista duplicada de atalhos do conteúdo
+   (o WooCommerce exibe atalhos também dentro do painel). Mantemos apenas o menu. */
+body.woocommerce-account .woocommerce-MyAccount-content > ul {display: none !important;}
+
+/* Headings */
+body.woocommerce-account .woocommerce h2,
+body.woocommerce-account .woocommerce h3 {
+  margin: 18px 0 12px;
+}
+
+/* Tables */
+body.woocommerce-account .woocommerce table.my_account_orders,
+body.woocommerce-account .woocommerce table.shop_table {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--sg-color-border);
+  box-shadow: var(--sg-card-shadow);
+  overflow: hidden;
+}
+
+/* Cards for notices */
+body.woocommerce-account .woocommerce-message,
+body.woocommerce-account .woocommerce-error,
+body.woocommerce-account .woocommerce-info {
+  border-radius: 10px;
+  box-shadow: var(--sg-card-shadow);
+}
+
+/* Forms */
+body.woocommerce-account .woocommerce form .form-row input.input-text,
+body.woocommerce-account .woocommerce form .form-row textarea,
+body.woocommerce-account .woocommerce form .form-row select {
+  border-radius: 8px;
+}
+
+/* Enhanced form styling for My Account */
+/* Reset labels to default weight */
+body.woocommerce-account .woocommerce form .form-row label { margin-bottom: 6px; display: inline-block; font-weight: 500; }
+/* Robust selectors to win specificity on Edit Account form */
+body.woocommerce-account .woocommerce form .form-row input.input-text,
+body.woocommerce-account .woocommerce form .form-row select,
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row input,
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row select,
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row input[type="text"],
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row input[type="email"],
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  height: 46px !important; /* mais altura visível */
+  padding: 12px 14px !important;
+  border: 1px solid var(--sg-color-border) !important;
+  background: #fff !important;
+  color: var(--sg-color-text) !important;
+  border-radius: 12px !important; /* cantos arredondados */
+  line-height: 1.3;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+body.woocommerce-account .woocommerce form .form-row textarea,
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 120px !important;
+  padding: 12px 14px !important;
+  border: 1px solid var(--sg-color-border) !important;
+  background: #fff !important;
+  color: var(--sg-color-text) !important;
+  border-radius: 12px !important;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+body.woocommerce-account .woocommerce form .form-row input.input-text:focus,
+body.woocommerce-account .woocommerce form .form-row textarea:focus,
+body.woocommerce-account .woocommerce form .form-row select:focus,
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row input:focus,
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row textarea:focus,
+body.woocommerce-account form.woocommerce-EditAccountForm .form-row select:focus {
+  outline: none !important;
+  border-color: var(--sg-color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(2,58,141,.15) !important; /* azul principal com alpha */
+}
+
+/* Password change fieldset: add inner spacing so content doesn't touch the border */
+body.woocommerce-account form.woocommerce-EditAccountForm fieldset {
+  padding: 14px 16px !important; /* margem interna */
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--sg-color-border);
+}
+body.woocommerce-account form.woocommerce-EditAccountForm fieldset legend {
+  padding: 0 6px; /* separa o título da borda */
+  font-weight: 600;
+}
+/* Placeholder subtle */
+body.woocommerce-account .woocommerce ::placeholder { color: #8b8b8b; opacity: 1; }
+
+/* Row spacing */
+body.woocommerce-account .woocommerce form .form-row { margin-bottom: 14px; }
+
+/* Submit button */
+/* Keep default button styles; only soften rounding and height slightly */
+body.woocommerce-account .woocommerce form button.button,
+body.woocommerce-account .woocommerce form input.button {
+  padding: 11px 16px !important;
+  border-radius: 10px !important;
+}
+
+/* Buttons */
+body.woocommerce-account .woocommerce a.button,
+body.woocommerce-account .woocommerce button.button,
+body.woocommerce-account .woocommerce input.button {
+  background: var(--sg-color-button-bg);
+  color: var(--sg-color-button-text);
+  border-radius: 8px;
+}
+
+body.woocommerce-account .woocommerce a.button:hover,
+body.woocommerce-account .woocommerce button.button:hover,
+body.woocommerce-account .woocommerce input.button:hover {
+  background: var(--sg-color-button-hover);
+}
+
+/* Ensure button text color on hover (Visualizar/Cancelar etc.) */
+/* High-contrast text color on hover (ensure visible) */
+body.woocommerce-account .woocommerce a.button:hover,
+body.woocommerce-account .woocommerce .button:hover,
+body.woocommerce-account .woocommerce a.woocommerce-button:hover,
+body.woocommerce-account .woocommerce button.woocommerce-button:hover,
+body.woocommerce-account .woocommerce a.wp-element-button:hover,
+body.woocommerce-account .woocommerce a.button:hover span,
+body.woocommerce-account .woocommerce .button:hover span {
+  color: #111 !important;
+  text-shadow: none !important;
+}
+
+/* Extra specificity to beat theme/palette hover rules */
+body.woocommerce-account .woocommerce a.button.button:hover,
+body.woocommerce-account .woocommerce a.woocommerce-button.button:hover,
+body.woocommerce-account .woocommerce a.button.view:hover,
+body.woocommerce-account .woocommerce a.button:hover *,
+body.woocommerce-account .woocommerce .button:hover * {
+  color: #111 !important;
+  -webkit-text-fill-color: #111 !important; /* Safari edge case */
+}
+
+/* Ultra-specific targets for WooCommerce action buttons */
+.woocommerce a.woocommerce-button.button.view:hover,
+.woocommerce a.woocommerce-button.button.cancel:hover,
+.woocommerce a.button.view:hover,
+.woocommerce a.button.cancel:hover {
+  color: #111 !important;
+  -webkit-text-fill-color: #111 !important;
+  text-shadow: none !important;
+}
+
+/* Orders table actions: explicit target to avoid any theme conflicts */
+body.woocommerce-account table.my_account_orders .button:hover,
+body.woocommerce-account table.my_account_orders .button:focus {
+  color: #111 !important;
+}
+
+/* Global WooCommerce forward/primary buttons (e.g., wc-forward links) */
+.woocommerce a.button.wc-forward,
+.woocommerce a.button.wc-forward:visited,
+.woocommerce a.button.wc-forward:focus,
+.woocommerce a.button.wc-forward:hover {
+  color: #111 !important;
+}
+
+/* Notice bar action button (Download/Orders empty state) */
+body.woocommerce-account .woocommerce .woocommerce-info a.button,
+body.woocommerce-account .woocommerce .woocommerce-info a.button:hover,
+body.woocommerce-account .woocommerce .woocommerce-message a.button,
+body.woocommerce-account .woocommerce .woocommerce-message a.button:hover {
+  color: #111 !important;
+  -webkit-text-fill-color: #111 !important;
+}
+
+/* Texto de boas-vindas e instruções: margens compactas */
+body.woocommerce-account .woocommerce-MyAccount-content p {
+  margin: 6px 0 8px !important;
+}
+/* adiciona respiro entre o menu e o primeiro parágrafo do conteúdo */
+body.woocommerce-account .woocommerce-MyAccount-content p:first-child {
+  margin-top: 12px !important;
+}
+body.woocommerce-account .woocommerce-MyAccount-content p:last-child {
+  margin-bottom: 0 !important; /* elimina espaço em branco desnecessário abaixo */
+}
+
+/* Mobile tweaks */
+/* Em telas estreitas, volte para layout de uma coluna e menu rolável horizontal */
+@media (max-width: 782px) {
+  body.woocommerce-account .sg-my-account-layout { display: block !important; }
+  body.woocommerce-account .woocommerce { display: block !important; }
+  body.woocommerce-account nav.woocommerce-MyAccount-navigation {
+    position: static !important;
+  }
+  body.woocommerce-account nav.woocommerce-MyAccount-navigation ul {
+    margin: 0 0 16px 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  body.woocommerce-account nav.woocommerce-MyAccount-navigation li {
+    min-height: 36px !important;
+  }
+  body.woocommerce-account nav.woocommerce-MyAccount-navigation ul li a,
+  body.woocommerce-account nav.woocommerce-MyAccount-navigation ul li.is-active > a {
+    padding: 0 10px !important;
+    line-height: 1 !important;
+    height: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* Final override for template to guarantee no leftover margins/floats */
+.page-template-account-sidebar .woocommerce-MyAccount-content { margin-left: 0 !important; float: none !important; }
+.page-template-account-sidebar nav.woocommerce-MyAccount-navigation { float: none !important; }
+
+/* Template overrides after all fallbacks: remove extra left space */
+.page-template-account-sidebar nav.woocommerce-MyAccount-navigation { width: 220px !important; float: none !important; }
+.page-template-account-sidebar .woocommerce-MyAccount-content { margin-left: 0 !important; }
+
+

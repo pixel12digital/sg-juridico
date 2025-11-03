@@ -1,16 +1,37 @@
-# Ignorar documentação
-*.md
-*.txt
-*.zip
+# WordPress - Estrutura na raiz (Hostinger deployment)
+# Ignorar apenas arquivos gerados, sensíveis e temporários
+
+# Arquivos de configuração sensíveis (backups apenas)
+wp-config-local.php
+wp-config-backup.php
+*config-backup*
+
+# Uploads e cache (muito grandes, não versionados)
+wp-content/uploads/*
+!wp-content/uploads/.gitkeep
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup*/
+
+# Arquivos de backup e temporários
+*.bak
+*.backup
 *.sql
+*.zip
 
-# Ignorar public_html
-public_html/
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.swp
+*.swo
+*~
 
-# Ignorar diretórios específicos
+# Arquivos específicos para ignorar
 ATIVAR-TEMA-SG-JURIDICO.txt
 remove_vestiges.sql
 sg_juridico_public_html.zip
+test-db-connection.php
+RESUMO-OTIMIZACAO-BD.txt
 
 # IDE
 .vscode/
@@ -23,5 +44,19 @@ desktop.ini
 node_modules/
 package-lock.json
 
-# Logs
-*.log
+# Git
+.git/
+.gitignore
+
+# Arquivos do sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup do XAMPP/local
+*.bak
+*.backup

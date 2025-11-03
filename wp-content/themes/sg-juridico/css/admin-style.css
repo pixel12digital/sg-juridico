@@ -1,0 +1,492 @@
+/**
+ * Estilos Customizados para o Painel Admin do WordPress
+ * SG Jurídico - Paleta: #5CE1E6 (ciano), #484848 (cinza escuro)
+ */
+
+/* ============================================
+   VARIÁVEIS CSS
+   ============================================ */
+:root {
+	--sg-admin-primary: #5CE1E6;
+	--sg-admin-primary-dark: #4BC4C8;
+	--sg-admin-primary-light: #7DE9ED;
+	--sg-admin-gray-dark: #484848;
+	--sg-admin-gray: #808080;
+	--sg-admin-gray-light: #F0F0F0;
+	--sg-admin-black: #000000;
+	--sg-admin-white: #FFFFFF;
+	--sg-admin-text: #000000;
+	--sg-admin-text-secondary: #484848;
+}
+
+/* ============================================
+   ADMIN BAR (BARRA SUPERIOR)
+   ============================================ */
+#wpadminbar {
+	background: var(--sg-admin-gray-dark) !important;
+	border-bottom: 2px solid var(--sg-admin-primary) !important;
+	height: 32px !important;
+}
+
+#wpadminbar .ab-top-menu > li:hover > .ab-item,
+#wpadminbar .ab-top-menu > li > .ab-item:focus,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li > .ab-item:focus,
+#wpadminbar:not(.mobile) .ab-top-menu > li:hover > .ab-item,
+#wpadminbar:not(.mobile) .ab-top-menu > li > .ab-item:focus {
+	background: var(--sg-admin-primary) !important;
+	color: var(--sg-admin-black) !important;
+}
+
+#wpadminbar .ab-item,
+#wpadminbar a.ab-item {
+	color: var(--sg-admin-white) !important;
+}
+
+#wpadminbar .ab-icon,
+#wpadminbar .ab-icon:before,
+#wpadminbar .ab-item:before {
+	color: var(--sg-admin-primary) !important;
+}
+
+#wpadminbar .ab-label {
+	color: var(--sg-admin-white) !important;
+}
+
+#wpadminbar .menu-toggle:before {
+	color: var(--sg-admin-primary) !important;
+}
+
+#wpadminbar #wp-admin-bar-site-name > .ab-item:before {
+	color: var(--sg-admin-primary) !important;
+	display: none !important;
+	content: none !important;
+}
+
+/* Ocultar ícone do WordPress */
+#wpadminbar #wp-admin-bar-wp-logo,
+#wpadminbar .ab-top-menu > li#wp-admin-bar-wp-logo {
+	display: none !important;
+}
+
+/* Ocultar badge "Ao vivo" do WooCommerce */
+#wpadminbar #wp-admin-bar-woocommerce-site-visibility-badge,
+#wpadminbar .woocommerce-site-status-badge-live,
+#wpadminbar li.woocommerce-site-status-badge-live,
+#wpadminbar li[id*="woocommerce-site-visibility"],
+#wpadminbar li[class*="woocommerce-site-status"] {
+	display: none !important;
+}
+
+#wpadminbar #wp-admin-bar-site-name > .ab-item:before,
+#wpadminbar #wp-admin-bar-site-name .ab-icon:before {
+	display: none !important;
+	content: none !important;
+}
+
+/* Logo customizado na admin bar - substituindo o ícone do WordPress */
+#wpadminbar #wp-admin-bar-site-name-logo {
+	position: relative !important;
+}
+
+#wpadminbar #wp-admin-bar-site-name-logo .sg-admin-logo {
+	max-height: 20px !important;
+	max-width: 140px !important;
+	width: auto !important;
+	height: auto !important;
+	vertical-align: middle !important;
+	margin-right: 0 !important;
+	display: block !important;
+}
+
+#wpadminbar #wp-admin-bar-site-name-logo > .ab-item {
+	padding: 0 8px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	height: 32px !important;
+	line-height: 1 !important;
+	min-width: auto !important;
+}
+
+#wpadminbar #wp-admin-bar-site-name-logo:hover > .ab-item {
+	background: var(--sg-admin-primary) !important;
+}
+
+#wpadminbar #wp-admin-bar-site-name-logo .ab-icon,
+#wpadminbar #wp-admin-bar-site-name-logo .ab-icon:before {
+	display: none !important;
+}
+
+/* Melhorar estilo quando não há logo */
+#wpadminbar #wp-admin-bar-site-name > .ab-item {
+	font-weight: 600 !important;
+	padding-left: 8px !important;
+}
+
+/* Garantir que o logo aparece no lugar do WordPress */
+#wpadminbar .ab-top-menu > li#wp-admin-bar-site-name-logo {
+	order: -1;
+}
+
+/* ============================================
+   SIDEBAR DO ADMIN
+   ============================================ */
+#adminmenuback,
+#adminmenuwrap,
+#adminmenu {
+	background: var(--sg-admin-gray-dark) !important;
+}
+
+#adminmenu,
+#adminmenu .wp-submenu,
+#adminmenuback,
+#adminmenuwrap {
+	width: 160px !important;
+}
+
+#adminmenu .wp-submenu {
+	background: var(--sg-admin-gray-dark) !important;
+}
+
+#adminmenu a {
+	color: rgba(255, 255, 255, 0.9) !important;
+}
+
+#adminmenu li.menu-top:hover,
+#adminmenu li.opensub > a.menu-top,
+#adminmenu li > a.menu-top:focus {
+	background: var(--sg-admin-primary) !important;
+	color: var(--sg-admin-black) !important;
+}
+
+#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head,
+#adminmenu .wp-has-current-submenu.opensub .wp-submenu .wp-submenu-head,
+#adminmenu .wp-has-current-submenu a.menu-top:focus + .wp-submenu .wp-submenu-head,
+#adminmenu a.menu-top:focus + .wp-submenu .wp-submenu-head {
+	background: rgba(92, 225, 230, 0.1) !important;
+}
+
+#adminmenu .current,
+#adminmenu .wp-has-current-submenu .wp-submenu,
+#adminmenu .wp-has-current-submenu .wp-submenu.sub-open,
+#adminmenu .wp-has-current-submenu.opensub .wp-submenu {
+	background: var(--sg-admin-gray-dark) !important;
+}
+
+#adminmenu .wp-has-current-submenu a.wp-has-current-submenu,
+#adminmenu .current div.wp-menu-image:before,
+#adminmenu .wp-has-current-submenu div.wp-menu-image:before {
+	color: var(--sg-admin-primary) !important;
+}
+
+#adminmenu li.wp-has-current-submenu:hover a.wp-has-current-submenu {
+	background: var(--sg-admin-primary) !important;
+	color: var(--sg-admin-black) !important;
+}
+
+#adminmenu .wp-submenu li:hover,
+#adminmenu .wp-submenu li:focus {
+	background: rgba(92, 225, 230, 0.15) !important;
+}
+
+#adminmenu .wp-submenu a:hover,
+#adminmenu .wp-submenu a:focus {
+	color: var(--sg-admin-primary) !important;
+}
+
+/* Ícones do menu */
+#adminmenu .wp-menu-image:before {
+	color: rgba(255, 255, 255, 0.7) !important;
+}
+
+#adminmenu li:hover .wp-menu-image:before,
+#adminmenu li.current .wp-menu-image:before,
+#adminmenu li.wp-has-current-submenu .wp-menu-image:before {
+	color: var(--sg-admin-black) !important;
+}
+
+/* Separador */
+#adminmenu .wp-menu-separator {
+	background-color: rgba(255, 255, 255, 0.1) !important;
+	height: 1px !important;
+}
+
+/* ============================================
+   CONTEÚDO PRINCIPAL
+   ============================================ */
+#wpcontent,
+#wpfooter {
+	margin-left: 160px !important;
+}
+
+.wrap {
+	margin: 0 !important;
+	padding: 20px !important;
+}
+
+.wrap .page-title-action,
+.page-title-action {
+	background: var(--sg-admin-primary) !important;
+	color: var(--sg-admin-black) !important;
+	border: none !important;
+	border-radius: 4px !important;
+	padding: 8px 16px !important;
+	font-weight: 600 !important;
+	text-decoration: none !important;
+	transition: all 0.3s ease !important;
+}
+
+.wrap .page-title-action:hover,
+.page-title-action:hover {
+	background: var(--sg-admin-primary-dark) !important;
+	color: var(--sg-admin-black) !important;
+}
+
+/* ============================================
+   BOTÕES
+   ============================================ */
+.button-primary,
+.button.button-primary,
+.wp-core-ui .button-primary {
+	background: var(--sg-admin-primary) !important;
+	border-color: var(--sg-admin-primary) !important;
+	color: var(--sg-admin-black) !important;
+	font-weight: 600 !important;
+}
+
+.button-primary:hover,
+.button.button-primary:hover,
+.wp-core-ui .button-primary:hover,
+.button-primary:focus,
+.button.button-primary:focus,
+.wp-core-ui .button-primary:focus {
+	background: var(--sg-admin-primary-dark) !important;
+	border-color: var(--sg-admin-primary-dark) !important;
+	color: var(--sg-admin-black) !important;
+}
+
+.button-secondary,
+.button.button-secondary {
+	border-color: var(--sg-admin-gray) !important;
+	color: var(--sg-admin-text-secondary) !important;
+}
+
+.button-secondary:hover,
+.button.button-secondary:hover {
+	border-color: var(--sg-admin-primary) !important;
+	color: var(--sg-admin-primary) !important;
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+a {
+	color: var(--sg-admin-primary) !important;
+}
+
+a:hover,
+a:focus {
+	color: var(--sg-admin-primary-dark) !important;
+}
+
+/* ============================================
+   NOTIFICAÇÕES E ALERTAS
+   ============================================ */
+.notice,
+.notice-success,
+.notice-error,
+.notice-warning,
+.notice-info {
+	border-left-color: var(--sg-admin-primary) !important;
+}
+
+.notice-success {
+	border-left-color: #46b450 !important;
+}
+
+.notice-error {
+	border-left-color: #dc3232 !important;
+}
+
+.notice-warning {
+	border-left-color: #ffb900 !important;
+}
+
+.notice-info {
+	border-left-color: var(--sg-admin-primary) !important;
+}
+
+/* ============================================
+   DASHBOARD WIDGETS
+   ============================================ */
+.postbox {
+	border: 1px solid var(--sg-admin-gray-light) !important;
+	border-radius: 8px !important;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+	background: var(--sg-admin-white) !important;
+}
+
+.postbox-header {
+	border-bottom: 1px solid var(--sg-admin-gray-light) !important;
+	background: var(--sg-admin-gray-light) !important;
+	border-radius: 8px 8px 0 0 !important;
+	padding: 12px 16px !important;
+}
+
+.postbox-header h2,
+.postbox-header h3 {
+	color: var(--sg-admin-text-secondary) !important;
+	font-weight: 600 !important;
+	margin: 0 !important;
+}
+
+.postbox .inside {
+	padding: 16px !important;
+}
+
+/* Remover bordas e estilos desnecessários dos widgets */
+.meta-box-sortables {
+	margin-top: 0 !important;
+}
+
+/* ============================================
+   FORMULÁRIOS
+   ============================================ */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+	border-color: var(--sg-admin-gray-light) !important;
+	border-radius: 4px !important;
+	padding: 6px 10px !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus {
+	border-color: var(--sg-admin-primary) !important;
+	box-shadow: 0 0 0 1px var(--sg-admin-primary) !important;
+	outline: none !important;
+}
+
+/* ============================================
+   TABELAS
+   ============================================ */
+.wp-list-table {
+	border-radius: 8px !important;
+	overflow: hidden !important;
+}
+
+.wp-list-table thead th,
+.wp-list-table tfoot th {
+	background: var(--sg-admin-gray-light) !important;
+	color: var(--sg-admin-text-secondary) !important;
+	font-weight: 600 !important;
+}
+
+.wp-list-table tbody tr:hover {
+	background: rgba(92, 225, 230, 0.05) !important;
+}
+
+.wp-list-table tbody tr.current {
+	background: rgba(92, 225, 230, 0.1) !important;
+}
+
+/* ============================================
+   REMOVER ELEMENTOS DESNECESSÁRIOS
+   ============================================ */
+/* Ocultar banner de atualização desnecessário */
+.update-nag,
+#dashboard-widgets .welcome-panel,
+.welcome-panel {
+	display: none !important;
+}
+
+/* Ocultar widget de notícias do WordPress */
+#dashboard_primary {
+	display: none !important;
+}
+
+/* Ocultar widget de eventos do WordPress */
+#dashboard_secondary {
+	display: none !important;
+}
+
+/* Ocultar widget de atividade (comentários) se não necessário */
+/* Descomente a linha abaixo se quiser ocultar completamente */
+/* #dashboard_activity { display: none !important; } */
+
+/* ============================================
+   WIDGETS DE CONFIGURAÇÃO WOOCOMMERCE
+   ============================================ */
+.woocommerce-message,
+.woocommerce-error,
+.woocommerce-info {
+	border-left-color: var(--sg-admin-primary) !important;
+}
+
+.woocommerce-message a.button-primary {
+	background: var(--sg-admin-primary) !important;
+	color: var(--sg-admin-black) !important;
+}
+
+/* ============================================
+   AJUSTES RESPONSIVOS
+   ============================================ */
+@media screen and (max-width: 782px) {
+	#wpcontent,
+	#wpfooter {
+		margin-left: 0 !important;
+	}
+	
+	#adminmenu,
+	#adminmenuback,
+	#adminmenuwrap {
+		width: 100% !important;
+	}
+}
+
+/* ============================================
+   PERSONALIZAÇÃO DO LOGO E BRANDING
+   ============================================ */
+#wpadminbar #wp-admin-bar-site-name > .ab-item {
+	font-weight: 600 !important;
+}
+
+#adminmenu .wp-menu-name {
+	font-weight: 500 !important;
+}
+
+/* ============================================
+   SCROLLBAR CUSTOMIZADA
+   ============================================ */
+#adminmenu::-webkit-scrollbar,
+#wpadminbar::-webkit-scrollbar {
+	width: 8px;
+}
+
+#adminmenu::-webkit-scrollbar-track,
+#wpadminbar::-webkit-scrollbar-track {
+	background: var(--sg-admin-gray-dark);
+}
+
+#adminmenu::-webkit-scrollbar-thumb,
+#wpadminbar::-webkit-scrollbar-thumb {
+	background: var(--sg-admin-primary);
+	border-radius: 4px;
+}
+
+#adminmenu::-webkit-scrollbar-thumb:hover,
+#wpadminbar::-webkit-scrollbar-thumb:hover {
+	background: var(--sg-admin-primary-dark);
+}
+
