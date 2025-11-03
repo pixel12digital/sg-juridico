@@ -128,3 +128,23 @@ hr {
 	background-color: var(--sg-color-button-hover);
 }
 
+/* Forçar cor padrão também para variações ".alt" do WooCommerce */
+.woocommerce .button.alt,
+.woocommerce button.button.alt,
+.woocommerce a.button.alt,
+body.single-product .single_add_to_cart_button.button,
+body.single-product .single_add_to_cart_button.button.alt {
+	background-color: var(--sg-color-button-bg) !important;
+	color: var(--sg-color-button-text) !important;
+	border: none;
+}
+
+.woocommerce .button.alt:hover,
+.woocommerce button.button.alt:hover,
+.woocommerce a.button.alt:hover,
+body.single-product .single_add_to_cart_button.button:hover,
+body.single-product .single_add_to_cart_button.button.alt:hover {
+	background-color: var(--sg-color-button-hover) !important;
+	color: var(--sg-color-button-text) !important;
+}
+

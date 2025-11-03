@@ -677,9 +677,12 @@ body {
     overflow: visible;
 }
 
-/* Quando o carrossel contém apenas imagens, remover padding do container */
-.home-banner:has(.banner-slide-image) {
-    padding: 0;
+/* Quando o carrossel contém apenas imagens, remover padding do container e forçar 16:9 */
+.home-banner:has(.banner-slide-image),
+.home-banner.home-carousel:has(.banner-slide-image) {
+    padding: 0 !important;
+    height: auto !important;
+    max-height: none !important;
 }
 
 .home-banner::after { display: none; }
@@ -766,11 +769,12 @@ body {
 @media (max-width: 768px) {
     .home-banner { padding: 24px 16px; height: auto; min-height: 400px; }
     .home-banner::after { display: none; }
+    .home-banner:has(.banner-slide-image) { padding: 0 !important; min-height: 0 !important; height: auto !important; }
     .home-carousel .carousel-slide { padding: 32px 16px; }
     .banner-slide-text { padding: 32px 16px; }
-    .banner-slide-image { padding: 0; }
-    .home-carousel:has(.banner-slide-image) { aspect-ratio: 16 / 9; }
-    .banner-slide-image .banner-image-wrapper { aspect-ratio: 16 / 9; }
+    .banner-slide-image { padding: 0 !important; }
+    .home-carousel:has(.banner-slide-image) { aspect-ratio: 16 / 9 !important; }
+    .banner-slide-image .banner-image-wrapper { aspect-ratio: 16 / 9 !important; }
     .banner-content-wrapper { padding: 0 10px; }
     .home-banner .banner-title { font-size: 28px; margin-bottom: 10px; }
     .home-banner .banner-subtitle { font-size: 17px; margin-bottom: 10px; }
@@ -791,11 +795,12 @@ body {
 
 @media (max-width: 480px) {
     .home-banner { padding: 20px 12px; min-height: 350px; }
+    .home-banner:has(.banner-slide-image) { padding: 0 !important; min-height: 0 !important; height: auto !important; }
     .home-carousel .carousel-slide { padding: 28px 12px; }
     .banner-slide-text { padding: 28px 12px; }
-    .banner-slide-image { padding: 0; }
-    .home-carousel:has(.banner-slide-image) { aspect-ratio: 16 / 9; }
-    .banner-slide-image .banner-image-wrapper { aspect-ratio: 16 / 9; }
+    .banner-slide-image { padding: 0 !important; }
+    .home-carousel:has(.banner-slide-image) { aspect-ratio: 16 / 9 !important; }
+    .banner-slide-image .banner-image-wrapper { aspect-ratio: 16 / 9 !important; }
     .home-banner .banner-title { font-size: 24px; }
     .home-banner .banner-subtitle { font-size: 15px; margin-bottom: 8px; }
     .banner-content-wrapper p + p { font-size: 14px; }
@@ -854,12 +859,16 @@ body {
     display: block; 
     position: relative; 
     overflow: hidden;
+    width: 100%;
 }
 
 /* Quando contém banner de imagem, usar aspect-ratio 16:9 baseado na largura */
-.home-carousel:has(.banner-slide-image) {
-    aspect-ratio: 16 / 9;
-    width: 100%;
+.home-carousel:has(.banner-slide-image),
+.home-banner.home-carousel:has(.banner-slide-image) {
+    aspect-ratio: 16 / 9 !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
 }
 
 .home-carousel .carousel-track {
@@ -871,6 +880,7 @@ body {
 /* Altura automática baseada no conteúdo, exceto para imagens */
 .home-carousel:has(.banner-slide-image) .carousel-track {
     height: 100%;
+    aspect-ratio: 16 / 9;
 }
 
 .home-carousel .carousel-slide {
@@ -894,23 +904,26 @@ body {
 
 /* Banner de imagem - garantir formato 16:9 exato */
 .banner-slide-image {
-    padding: 0;
+    padding: 0 !important;
     display: block;
     width: 100%;
     height: 100%;
     box-sizing: border-box;
     position: relative;
+    flex-shrink: 0;
 }
 
 .banner-slide-image .banner-image-wrapper {
-    width: 100%;
-    aspect-ratio: 16 / 9; /* Forçar proporção 16:9 - altura calculada automaticamente */
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important; /* Forçar proporção 16:9 - altura calculada automaticamente */
     display: block;
-    padding: 0;
-    margin: 0;
+    padding: 0 !important;
+    margin: 0 !important;
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
+    max-height: none !important;
+    height: auto !important;
 }
 
 .banner-slide-image .banner-image-wrapper img {
@@ -5173,14 +5186,17 @@ body.single-product .quantity input[type="number"]:focus {
 }
 
 /* Botão de adicionar ao carrinho */
-body.single-product .single_add_to_cart_button.button {
-	background-color: var(--sg-color-primary);
-	color: var(--sg-color-button-text);
+body.single-product .single_add_to_cart_button.button,
+body.single-product .single_add_to_cart_button.button.alt,
+body.single-product form.cart .single_add_to_cart_button.button,
+body.single-product form.cart .single_add_to_cart_button.button.alt {
+	background-color: var(--sg-color-primary) !important;
+	color: var(--sg-color-button-text) !important;
 	padding: 15px 35px;
 	font-size: 16px;
 	font-weight: 700;
 	border-radius: 8px;
-	border: none;
+	border: none !important;
 	cursor: pointer;
 	transition: all 0.3s ease;
 	width: 100%;
@@ -5190,8 +5206,12 @@ body.single-product .single_add_to_cart_button.button {
 	letter-spacing: 0.5px;
 }
 
-body.single-product .single_add_to_cart_button.button:hover {
-	background-color: var(--sg-color-primary-dark);
+body.single-product .single_add_to_cart_button.button:hover,
+body.single-product .single_add_to_cart_button.button.alt:hover,
+body.single-product form.cart .single_add_to_cart_button.button:hover,
+body.single-product form.cart .single_add_to_cart_button.button.alt:hover {
+	background-color: var(--sg-color-primary-dark) !important;
+	color: var(--sg-color-button-text) !important;
 	box-shadow: 0 4px 12px rgba(92, 225, 230, 0.4);
 	transform: translateY(-2px);
 }
