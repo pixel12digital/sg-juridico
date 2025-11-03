@@ -20,6 +20,11 @@ class URL_Fix_Helper {
         // Detecta ambiente
         $this->detect_environment();
         
+        // Verificar se funções do WordPress estão disponíveis
+        if (!function_exists('add_action') || !function_exists('add_filter')) {
+            return; // WordPress ainda não carregou
+        }
+        
         // SEMPRE aplica filtros (híbrido - funciona em produção e local)
         // Hook no momento certo para atualizar URLs
         add_action('init', array($this, 'fix_urls'), 1);
@@ -28,7 +33,7 @@ class URL_Fix_Helper {
         add_filter('the_content', array($this, 'fix_content_urls'));
         add_filter('the_excerpt', array($this, 'fix_content_urls'));
         
-        // Força URLs corretas ignorando constantes
+        // Força URLs corretas ignorando constantes - PRIORIDADE MÁXIMA (999)
         add_filter('site_url', array($this, 'force_correct_url'), 999);
         add_filter('home_url', array($this, 'force_correct_url'), 999);
         add_filter('network_site_url', array($this, 'force_correct_url'), 999);
@@ -39,7 +44,13 @@ class URL_Fix_Helper {
         add_filter('plugins_url', array($this, 'force_correct_url'), 999);
         add_filter('theme_root_uri', array($this, 'force_correct_url'), 999);
         add_filter('stylesheet_uri', array($this, 'force_correct_url'), 999);
+        add_filter('stylesheet_directory_uri', array($this, 'force_correct_url'), 999);
+        add_filter('template_directory_uri', array($this, 'force_correct_url'), 999);
         add_filter('template_uri', array($this, 'force_correct_url'), 999);
+        
+        // Filtro adicional para garantir URLs corretas em wp_enqueue_style/wp_enqueue_script
+        add_filter('style_loader_src', array($this, 'force_correct_url'), 999);
+        add_filter('script_loader_src', array($this, 'force_correct_url'), 999);
         
         // Filtra permalinks
         add_filter('post_link', array($this, 'force_correct_url'), 999);
@@ -77,7 +88,7 @@ class URL_Fix_Helper {
         
         // Se for local, define a URL local correta baseada no HOST
         if ($this->is_local && isset($_SERVER['HTTP_HOST'])) {
-            $this->local_url = 'http://' . $_SERVER['HTTP_HOST'] . '/sg-juridico/public_html';
+            $this->local_url = 'http://' . $_SERVER['HTTP_HOST'] . '/sg-juridico';
         }
     }
     
@@ -87,7 +98,7 @@ class URL_Fix_Helper {
     public function add_frontend_js() {
         $current_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
         $is_local = (strpos($current_host, 'localhost') !== false || strpos($current_host, '127.0.0.1') !== false);
-        $local_url = $is_local ? ('http://' . $current_host . '/sg-juridico/public_html') : '';
+        $local_url = $is_local ? ('http://' . $current_host . '/sg-juridico') : '';
         ?>
         <script>
         (function() {
@@ -113,7 +124,7 @@ class URL_Fix_Helper {
                 } else {
                     // Se está em produção, substitui local por produção
                     if (url.indexOf('localhost') !== -1 || url.indexOf('127.0.0.1') !== -1) {
-                        return url.replace(/http:\/\/[^/]+\/sg-juridico\/public_html/g, productionUrl);
+                        return url.replace(/http:\/\/[^/]+\/sg-juridico/g, productionUrl);
                     }
                 }
                 return url;
@@ -284,13 +295,16 @@ class URL_Fix_Helper {
             return $url;
         }
         
+        // Debug em localhost (comentar depois)
+        // error_log('URL original: ' . $url);
+        
         // Detecta ambiente dinamicamente
         $current_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
         $is_local = (strpos($current_host, 'localhost') !== false || strpos($current_host, '127.0.0.1') !== false);
         
         // Corrige caminhos raiz relativos de uploads: /wp-content/uploads -> base + caminho
         if (strpos($url, '/wp-content/uploads') === 0) {
-            $base = ($is_local ? ('http://' . $current_host . '/sg-juridico/public_html') : 'https://sgjuridico.com.br');
+            $base = ($is_local ? ('http://' . $current_host . '/sg-juridico') : 'https://sgjuridico.com.br');
             $absolute = $base . $url;
             
             // Se arquivo não existir localmente, faz fallback para produção
@@ -303,17 +317,59 @@ class URL_Fix_Helper {
         }
 
         if ($is_local) {
-            $local_url = 'http://' . $current_host . '/sg-juridico/public_html';
+            $local_url = 'http://' . $current_host . '/sg-juridico';
             
-            // PRIORIDADE: Substitui URL de produção por local (especialmente uploads)
+            // PRIORIDADE 1: Se a URL contém sgjuridico.com.br, substitui imediatamente
+            if (strpos($url, 'sgjuridico.com.br') !== false) {
+                $url = str_replace('https://sgjuridico.com.br', $local_url, $url);
+                $url = str_replace('http://sgjuridico.com.br', $local_url, $url);
+                // Remove HTTPS forçado em localhost
+                $url = str_replace('https://localhost', 'http://localhost', $url);
+                $url = str_replace('https://127.0.0.1', 'http://127.0.0.1', $url);
+                return $url; // Retorna imediatamente após substituição
+            }
+            
+            // PRIORIDADE 2: URLs de wp-content (themes, plugins, uploads) - SEMPRE corrige
+            if (strpos($url, '/wp-content/') !== false) {
+                // Se é uma URL relativa que começa com /wp-content, transforma em absoluta
+                if (strpos($url, '/wp-content/') === 0) {
+                    $url = $local_url . $url;
+                    return $url; // Retorna imediatamente
+                }
+                // Se não tem protocolo, adiciona a URL local
+                elseif (strpos($url, 'http://') !== 0 && strpos($url, 'https://') !== 0) {
+                    $url = $local_url . '/' . ltrim($url, '/');
+                    return $url; // Retorna imediatamente
+                }
+                // Se já tem protocolo mas é de produção, substitui
+                elseif (strpos($url, 'https://sgjuridico.com.br') === 0 || strpos($url, 'http://sgjuridico.com.br') === 0) {
+                    $url = str_replace('https://sgjuridico.com.br', $local_url, $url);
+                    $url = str_replace('http://sgjuridico.com.br', $local_url, $url);
+                    return $url; // Retorna imediatamente
+                }
+            }
+            
+            // PRIORIDADE 3: URLs que começam apenas com / mas não são wp-content
+            // (podem ser URLs absolutas que o WordPress gerou incorretamente)
+            if (strpos($url, '/') === 0 && strpos($url, '//') !== 0 && strpos($url, '/wp-content/') === false) {
+                // Se não tem protocolo e começa com /, é um caminho absoluto - adiciona o domínio local
+                if (strpos($url, 'http://') !== 0 && strpos($url, 'https://') !== 0) {
+                    // Verifica se é um caminho de tema/arquivo que existe localmente
+                    $test_path = trailingslashit( ABSPATH ) . ltrim( $url, '/' );
+                    if (file_exists($test_path) || strpos($url, '/wp-content/themes/') === 0 || strpos($url, '/wp-content/plugins/') === 0) {
+                        $url = $local_url . $url;
+                        return $url;
+                    }
+                }
+            }
+            
+            // PRIORIDADE 4: Substitui URL de produção por local (uploads específicos)
             if (strpos($url, 'https://sgjuridico.com.br/wp-content/uploads/') === 0 || strpos($url, 'http://sgjuridico.com.br/wp-content/uploads/') === 0) {
                 $url_path = str_replace('https://sgjuridico.com.br', '', $url);
                 $url_path = str_replace('http://sgjuridico.com.br', '', $url_path);
                 $url = $local_url . $url_path;
-            } elseif (strpos($url, 'sgjuridico.com.br') !== false) {
-                $url = str_replace('https://sgjuridico.com.br', $local_url, $url);
-                $url = str_replace('http://sgjuridico.com.br', $local_url, $url);
             }
+            
             // Fallback: se for uma URL de uploads local e arquivo não existir, usa produção
             if (strpos($url, $local_url . '/wp-content/uploads') === 0) {
                 $relative = str_replace($local_url . '/', '', $url);
@@ -322,14 +378,15 @@ class URL_Fix_Helper {
                     $url = str_replace($local_url, 'https://sgjuridico.com.br', $url);
                 }
             }
+            
             // Remove HTTPS forçado em localhost
             $url = str_replace('https://localhost', 'http://localhost', $url);
             $url = str_replace('https://127.0.0.1', 'http://127.0.0.1', $url);
         } else {
             // Se estiver em produção, substitui localhost por produção
             if (strpos($url, 'localhost') !== false || strpos($url, '127.0.0.1') !== false) {
-                $url = str_replace('http://localhost/sg-juridico/public_html', $this->production_url, $url);
-                $url = str_replace('http://127.0.0.1/sg-juridico/public_html', $this->production_url, $url);
+                $url = str_replace('http://localhost/sg-juridico', $this->production_url, $url);
+                $url = str_replace('http://127.0.0.1/sg-juridico', $this->production_url, $url);
             }
         }
         
@@ -409,7 +466,7 @@ class URL_Fix_Helper {
         $is_local = (strpos($current_host, 'localhost') !== false || strpos($current_host, '127.0.0.1') !== false);
         
         if ($is_local) {
-            $local_url = 'http://' . $current_host . '/sg-juridico/public_html';
+            $local_url = 'http://' . $current_host . '/sg-juridico';
             // Se a URL atual contém o domínio de produção, substitui
             if (strpos($value, 'sgjuridico.com.br') !== false) {
                 return $local_url;
@@ -437,7 +494,7 @@ class URL_Fix_Helper {
         
         if ($is_local) {
             $production_url = 'https://sgjuridico.com.br';
-            $local_url = 'http://' . $current_host . '/sg-juridico/public_html';
+            $local_url = 'http://' . $current_host . '/sg-juridico';
             
             // PRIORIDADE: Substitui URLs absolutas de produção por local no conteúdo HTML
             // Primeiro substitui URLs de uploads especificamente
@@ -507,7 +564,7 @@ class URL_Fix_Helper {
         global $wpdb;
         
         // URLs alvo
-        $local_url = 'http://' . $_SERVER['HTTP_HOST'] . '/sg-juridico/public_html';
+        $local_url = 'http://' . $_SERVER['HTTP_HOST'] . '/sg-juridico';
         $production_url = 'https://sgjuridico.com.br';
         
         // Verifica se precisa atualizar
@@ -555,7 +612,7 @@ class URL_Fix_Helper {
         $is_local = (strpos($current_host, 'localhost') !== false || strpos($current_host, '127.0.0.1') !== false);
         
         if ($is_local) {
-            $local_url = 'http://' . $current_host . '/sg-juridico/public_html';
+            $local_url = 'http://' . $current_host . '/sg-juridico';
             $production_url = 'https://sgjuridico.com.br';
             
             // PRIORIDADE 1: Substitui URLs absolutas de uploads com regex mais agressivo
@@ -567,7 +624,16 @@ class URL_Fix_Helper {
                 $buffer
             );
             
-            // PRIORIDADE 2: Substitui todas ocorrências de produção por local
+            // PRIORIDADE 2: Substitui URLs de temas e plugins (CRÍTICO para CSS/JS)
+            $buffer = preg_replace_callback(
+                '#(href|src)=["\']https?://sgjuridico\.com\.br(/wp-content/(themes|plugins)/[^"\']*)["\']#i',
+                function($matches) use ($local_url) {
+                    return $matches[1] . '="' . $local_url . $matches[2] . '"';
+                },
+                $buffer
+            );
+            
+            // PRIORIDADE 3: Substitui todas ocorrências de produção por local
             $buffer = str_replace($production_url . '/wp-content/uploads/', $local_url . '/wp-content/uploads/', $buffer);
             $buffer = str_replace('https://sgjuridico.com.br', $local_url, $buffer);
             $buffer = str_replace('http://sgjuridico.com.br', $local_url, $buffer);
@@ -611,8 +677,18 @@ class URL_Fix_Helper {
     }
 }
 
-// Inicializa o helper
-new URL_Fix_Helper();
+// Inicializa o helper apenas quando WordPress estiver pronto
+if (function_exists('add_action')) {
+    // Instanciar quando WordPress estiver pronto
+    add_action('plugins_loaded', function() {
+        if (class_exists('URL_Fix_Helper')) {
+            new URL_Fix_Helper();
+        }
+    }, 1);
+} else {
+    // Se WordPress ainda não carregou, tentar instanciar depois
+    // Mas isso não deve acontecer em mu-plugins
+}
 
 // Função auxiliar para forçar correção de URLs
 function force_fix_wordpress_urls() {
@@ -621,7 +697,7 @@ function force_fix_wordpress_urls() {
     $is_local = isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false;
     
     if ($is_local) {
-        $new_url = 'http://' . $_SERVER['HTTP_HOST'] . '/sg-juridico/public_html';
+        $new_url = 'http://' . $_SERVER['HTTP_HOST'] . '/sg-juridico';
     } else {
         $new_url = 'https://sgjuridico.com.br';
     }
