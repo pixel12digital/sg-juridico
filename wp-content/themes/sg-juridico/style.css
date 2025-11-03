@@ -1238,25 +1238,30 @@ body {
     justify-content: center;
 }
 .home-carousel .carousel-dot {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.5);
     cursor: pointer;
     transition: all 0.3s ease;
-    opacity: 0.6;
+    opacity: 0.7;
+    padding: 0;
+    box-sizing: border-box;
 }
 .home-carousel .carousel-dot:hover {
-    opacity: 0.8;
-    background: rgba(255, 255, 255, 0.5);
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.8);
+    border-width: 2px;
+    background: transparent;
 }
 .home-carousel .carousel-dot.is-active { 
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(255, 255, 255, 0.9);
+    background: transparent;
+    border-color: rgba(255, 255, 255, 1);
+    border-width: 2px;
     opacity: 1;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
 }
 
 /* Posts List - Layout Grid */
@@ -3141,6 +3146,92 @@ body.home.blog #secondary.widget-area {
 	flex-direction: column;
 }
 
+/* Remover background dos cards de produtos na loja (Materiais) */
+.woocommerce ul.products li.product,
+.woocommerce.archive ul.products li.product,
+body.woocommerce-shop ul.products li.product,
+body.woocommerce-shop .woocommerce ul.products li.product,
+.woocommerce ul.products li.product .product-info,
+.woocommerce.archive ul.products li.product .product-info,
+body.woocommerce-shop ul.products li.product .product-info {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
+.woocommerce ul.products li.product > a,
+.woocommerce.archive ul.products li.product > a,
+body.woocommerce-shop ul.products li.product > a {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
+/* Garantir que botões da loja NUNCA tenham bordas - SEMPRE SEM BORDA */
+.woocommerce ul.products li.product .button,
+.woocommerce ul.products li.product a.button,
+.woocommerce ul.products li.product button.button,
+.woocommerce ul.products li.product input.button,
+.woocommerce ul.products li.product .add_to_cart_button,
+.woocommerce.archive ul.products li.product .button,
+.woocommerce.archive ul.products li.product a.button,
+.woocommerce.archive ul.products li.product button.button,
+body.woocommerce-shop ul.products li.product .button,
+body.woocommerce-shop ul.products li.product a.button,
+body.woocommerce-shop ul.products li.product button.button,
+.woocommerce ul.products li.product .added_to_cart {
+	border: none !important;
+	border-width: 0 !important;
+	border-style: none !important;
+	border-color: transparent !important;
+	outline: none !important;
+	background-color: var(--sg-color-primary) !important;
+	color: #000 !important;
+}
+
+.woocommerce ul.products li.product .button:hover,
+.woocommerce ul.products li.product a.button:hover,
+.woocommerce ul.products li.product button.button:hover,
+.woocommerce ul.products li.product input.button:hover,
+.woocommerce ul.products li.product .add_to_cart_button:hover,
+.woocommerce.archive ul.products li.product .button:hover,
+.woocommerce.archive ul.products li.product a.button:hover,
+.woocommerce.archive ul.products li.product button.button:hover,
+body.woocommerce-shop ul.products li.product .button:hover,
+body.woocommerce-shop ul.products li.product a.button:hover,
+body.woocommerce-shop ul.products li.product button.button:hover,
+.woocommerce ul.products li.product .added_to_cart:hover {
+	border: none !important;
+	border-width: 0 !important;
+	border-style: none !important;
+	border-color: transparent !important;
+	outline: none !important;
+}
+
+.woocommerce ul.products li.product .button:focus,
+.woocommerce ul.products li.product a.button:focus,
+.woocommerce ul.products li.product button.button:focus,
+.woocommerce ul.products li.product input.button:focus,
+.woocommerce ul.products li.product .add_to_cart_button:focus,
+.woocommerce ul.products li.product .added_to_cart:focus {
+	border: none !important;
+	border-width: 0 !important;
+	border-style: none !important;
+	border-color: transparent !important;
+	outline: none !important;
+}
+
+.woocommerce ul.products li.product .button:active,
+.woocommerce ul.products li.product a.button:active,
+.woocommerce ul.products li.product button.button:active,
+.woocommerce ul.products li.product input.button:active,
+.woocommerce ul.products li.product .add_to_cart_button:active,
+.woocommerce ul.products li.product .added_to_cart:active {
+	border: none !important;
+	border-width: 0 !important;
+	border-style: none !important;
+	border-color: transparent !important;
+	outline: none !important;
+}
+
 .woocommerce ul.products li.product .woocommerce-loop-product__title,
 .woocommerce ul.products li.product h2,
 .woocommerce ul.products li.product .product-title {
@@ -4673,7 +4764,10 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 	margin-top: 10px;
 	background-color: var(--sg-color-primary);
 	color: #000;
-	border: none;
+	border: none !important;
+	border-width: 0 !important;
+	border-style: none !important;
+	border-color: transparent !important;
 	border-radius: 6px;
 	font-size: 12px;
 	font-weight: 700;
@@ -4686,6 +4780,7 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 	text-decoration: none;
 	box-sizing: border-box;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	outline: none;
 }
 
 .products-grid .product-add-to-cart-btn:hover,
@@ -4695,10 +4790,14 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 .home-category-products .product-add-to-cart-btn:hover {
 	background-color: #000;
 	color: var(--sg-color-primary);
-	border: none;
+	border: none !important;
+	border-width: 0 !important;
+	border-style: none !important;
+	border-color: transparent !important;
 	transform: translateY(-2px);
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 	text-decoration: none;
+	outline: none;
 }
 
 .products-grid .product-add-to-cart-btn:active,
@@ -4707,6 +4806,22 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 .home-products-confira .product-add-to-cart-btn:active,
 .home-category-products .product-add-to-cart-btn:active {
 	transform: translateY(0);
+	border: none !important;
+	border-width: 0 !important;
+	border-style: none !important;
+	border-color: transparent !important;
+}
+
+.products-grid .product-add-to-cart-btn:focus,
+.home-products-featured .product-add-to-cart-btn:focus,
+.home-products-best-selling .product-add-to-cart-btn:focus,
+.home-products-confira .product-add-to-cart-btn:focus,
+.home-category-products .product-add-to-cart-btn:focus {
+	border: none !important;
+	border-width: 0 !important;
+	border-style: none !important;
+	border-color: transparent !important;
+	outline: none;
 }
 
 /* Home Products Featured Section */
