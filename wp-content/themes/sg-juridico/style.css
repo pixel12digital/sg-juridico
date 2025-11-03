@@ -149,24 +149,24 @@ body {
 .btn-login {
 	background: transparent;
 	color: var(--sg-color-text);
-	border: 1px solid #ddd;
+	border: none;
 }
 
 .btn-login:hover {
 	background: var(--sg-color-gray-light);
-	border-color: var(--sg-color-gray);
+	border: none;
 	color: #000000;
 }
 
 .btn-register {
 	background: var(--sg-color-primary);
 	color: #000000;
-	border: 1px solid var(--sg-color-primary);
+	border: none;
 }
 
 .btn-register:hover {
 	background: var(--sg-color-primary-dark);
-	border-color: var(--sg-color-primary-dark);
+	border: none;
 	color: #000000;
 }
 
@@ -4074,7 +4074,7 @@ body.woocommerce-cart .woocommerce input.button,
 body.woocommerce-cart .woocommerce .button {
     background: var(--sg-color-primary);
     color: #000000;
-    border: 1px solid var(--sg-color-primary);
+    border: none;
 }
 
 body.woocommerce-cart .woocommerce a.button:hover,
@@ -4082,7 +4082,7 @@ body.woocommerce-cart .woocommerce button.button:hover,
 body.woocommerce-cart .woocommerce input.button:hover,
 body.woocommerce-cart .woocommerce .button:hover {
     background: var(--sg-color-primary-dark);
-    border-color: var(--sg-color-primary-dark);
+    border: none;
     color: #000000;
 }
 
@@ -4166,14 +4166,14 @@ body.woocommerce-checkout .woocommerce input.button,
 body.woocommerce-checkout .woocommerce .button {
     background: var(--sg-color-primary);
     color: #000000;
-    border: 1px solid var(--sg-color-primary);
+    border: none;
 }
 body.woocommerce-checkout .woocommerce a.button:hover,
 body.woocommerce-checkout .woocommerce button.button:hover,
 body.woocommerce-checkout .woocommerce input.button:hover,
 body.woocommerce-checkout .woocommerce .button:hover {
     background: var(--sg-color-primary-dark);
-    border-color: var(--sg-color-primary-dark);
+    border: none;
     color: #000000;
 }
 
@@ -4658,7 +4658,7 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 	margin-top: 10px;
 	background-color: var(--sg-color-primary);
 	color: #000;
-	border: 2px solid #000;
+	border: none;
 	border-radius: 6px;
 	font-size: 12px;
 	font-weight: 700;
@@ -4680,7 +4680,7 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 .home-category-products .product-add-to-cart-btn:hover {
 	background-color: #000;
 	color: var(--sg-color-primary);
-	border-color: #000;
+	border: none;
 	transform: translateY(-2px);
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 	text-decoration: none;
