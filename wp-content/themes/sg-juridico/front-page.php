@@ -105,13 +105,9 @@ get_header();
 												<?php endif; ?>
 											</div>
 										</a>
-										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>
-											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">
-												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">
-													Comprar
-												</button>
-											</form>
-										<?php endif; ?>
+										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
+											Comprar
+										</a>
 									</li>
 								<?php endforeach; ?>
 							</ul>
@@ -148,13 +144,9 @@ get_header();
 												</div>
 											</div>
 										</a>
-										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>
-											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">
-												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">
-													Comprar
-												</button>
-											</form>
-										<?php endif; ?>
+										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
+											Comprar
+										</a>
 									</li>
 								<?php endforeach; ?>
 							</ul>
@@ -191,13 +183,9 @@ get_header();
 												</div>
 											</div>
 										</a>
-										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>
-											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">
-												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">
-													Comprar
-												</button>
-											</form>
-										<?php endif; ?>
+										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
+											Comprar
+										</a>
 									</li>
 								<?php endforeach; ?>
 							</ul>

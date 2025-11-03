@@ -4617,12 +4617,16 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 	transition: all 0.3s ease;
 	display: block;
 	text-align: center;
+	text-decoration: none;
+	box-sizing: border-box;
 }
 
 .product-add-to-cart-btn:hover {
 	background-color: var(--sg-color-button-hover);
 	transform: translateY(-2px);
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	color: var(--sg-color-button-text);
+	text-decoration: none;
 }
 
 .product-add-to-cart-btn:active {
