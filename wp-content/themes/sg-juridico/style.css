@@ -1095,21 +1095,31 @@ body {
 }
 
 .banner-product-card .product-info {
-    padding: 8px 4px 8px 0;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
+    background: var(--sg-color-primary);
+    border-radius: 6px;
 }
 
 .banner-product-card .product-title {
-    font-size: 18px;
+    font-size: 14px;
     line-height: 1.3;
-    margin: 0;
+    margin: 0 0 8px;
+    padding: 0;
     font-weight: 700;
     color: #000;
+    text-transform: uppercase;
 }
 
-.banner-product-card .product-price { font-weight: 700; font-size: 18px; color: #000; }
+.banner-product-card .product-price {
+    font-weight: 700;
+    font-size: 16px;
+    color: #000;
+    margin: 0;
+    padding: 0;
+}
 .banner-product-card .product-excerpt { font-size: 14px; color: rgba(0,0,0,0.75); margin: 0; }
 .banner-product-card .product-cta { margin-top: 4px; }
 
@@ -1144,9 +1154,32 @@ body {
     background: #fff; padding: 8px; min-height: 160px; overflow: hidden;
 }
 .banner-product-slide .product-thumb img { max-height: 240px; width: auto; max-width: 100%; object-fit: contain; }
-.banner-product-slide .product-info { display: flex; flex-direction: column; gap: 8px; }
-.banner-product-slide .product-title { font-size: 22px; font-weight: 900; margin: 0 0 6px; line-height: 1.2; color: #000; }
-.banner-product-slide .product-price { font-weight: 800; font-size: 18px; color: #000; }
+.banner-product-slide .product-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	padding: 12px;
+	background: var(--sg-color-primary);
+	border-radius: 6px;
+}
+
+.banner-product-slide .product-title {
+	font-size: 14px;
+	font-weight: 700;
+	margin: 0 0 8px;
+	padding: 0;
+	line-height: 1.3;
+	color: #000;
+	text-transform: uppercase;
+}
+
+.banner-product-slide .product-price {
+	font-weight: 700;
+	font-size: 16px;
+	color: #000;
+	margin: 0;
+	padding: 0;
+}
 .banner-product-slide .product-excerpt { font-size: 14px; margin: 0; color: rgba(0,0,0,0.75); }
 .banner-product-slide .banner-product:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
 
@@ -3084,6 +3117,40 @@ body.home.blog #secondary.widget-area {
 	margin: 0;
 }
 
+/* Padronizar product-info do WooCommerce seguindo product-badge */
+.woocommerce ul.products li.product .product-info,
+.woocommerce ul.products li.product > a,
+.woocommerce ul.products li.product .woocommerce-loop-product__link {
+	display: flex;
+	flex-direction: column;
+}
+
+.woocommerce ul.products li.product .woocommerce-loop-product__title,
+.woocommerce ul.products li.product h2,
+.woocommerce ul.products li.product .product-title {
+	font-size: 14px !important;
+	font-weight: 700 !important;
+	color: #000 !important;
+	margin: 0 !important;
+	padding: 12px !important;
+	background: var(--sg-color-primary) !important;
+	border-radius: 6px 6px 0 0 !important;
+	text-transform: uppercase !important;
+	line-height: 1.3 !important;
+}
+
+.woocommerce ul.products li.product .price,
+.woocommerce ul.products li.product .woocommerce-Price-amount,
+.woocommerce ul.products li.product .amount {
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	color: #000 !important;
+	margin: 0 !important;
+	padding: 0 12px 12px 12px !important;
+	background: var(--sg-color-primary) !important;
+	border-radius: 0 0 6px 6px !important;
+}
+
 /* Featured Content Section */
 .featured-section {
 	margin: 60px 0;
@@ -4492,25 +4559,29 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 }
 
 .product-info {
-	padding: 20px;
+	padding: 12px;
 	flex: 1;
 	display: flex;
 	flex-direction: column;
+	background: var(--sg-color-primary);
+	border-radius: 6px;
+	gap: 8px;
 }
 
 .product-title {
-	font-size: 18px;
+	font-size: 14px;
 	font-weight: 700;
-	margin: 0 0 10px;
-	color: var(--sg-color-heading);
+	margin: 0;
+	color: #000;
 	line-height: 1.3;
+	text-transform: uppercase;
 }
 
 .product-price {
-	font-size: 20px;
+	font-size: 16px;
 	font-weight: 700;
-	color: var(--sg-color-primary);
-	margin-bottom: 10px;
+	color: #000;
+	margin: 0;
 }
 
 .product-excerpt {
