@@ -20,7 +20,9 @@ class DB_Connection_Manager {
     public function __construct() {
         // Verificar se funções do WordPress estão disponíveis
         if (!function_exists('add_action') || !function_exists('add_filter')) {
-            return; // WordPress ainda não carregou
+            // Se não estão disponíveis, tentar registrar para quando estiverem
+            // Isso pode acontecer se o plugin for carregado muito cedo
+            return;
         }
         
         // Ativa em todos os ambientes (localhost e produção)
@@ -117,9 +119,15 @@ class DB_Connection_Manager {
     }
 }
 
-// Inicializa em todos os ambientes para otimizar conexões
-// Apenas se o WordPress já tiver carregado as funções necessárias
-if (function_exists('add_action') && function_exists('add_filter')) {
-    new DB_Connection_Manager();
+// Inicialização segura usando hook do WordPress
+// Mu-plugins são carregados pelo wp-settings.php após wp-includes/plugin.php ser carregado
+// Então add_action deve estar disponível, mas vamos usar um hook para garantir
+if (function_exists('add_action')) {
+    // Usar 'plugins_loaded' que é executado após todos os plugins serem carregados
+    add_action('plugins_loaded', function() {
+        if (class_exists('DB_Connection_Manager')) {
+            new DB_Connection_Manager();
+        }
+    }, 1);
 }
 
