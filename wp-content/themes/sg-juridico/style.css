@@ -4494,6 +4494,9 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 .product-item {
 	margin: 0;
 	padding: 0;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 }
 
 .product-link {
@@ -4505,7 +4508,7 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 	overflow: hidden;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 	transition: all 0.3s ease;
-	height: 100%;
+	flex: 1;
 	display: flex;
 	flex-direction: column;
 }
@@ -4590,6 +4593,40 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 	line-height: 1.6;
 	margin: 0;
 	margin-top: auto;
+}
+
+/* Product Add to Cart Button */
+.product-item form.cart {
+	margin: 0;
+	padding: 0;
+	display: block;
+}
+
+.product-add-to-cart-btn {
+	width: 100%;
+	padding: 12px 20px;
+	margin-top: 10px;
+	background-color: var(--sg-color-button-bg);
+	color: var(--sg-color-button-text);
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 700;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	display: block;
+	text-align: center;
+}
+
+.product-add-to-cart-btn:hover {
+	background-color: var(--sg-color-button-hover);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-add-to-cart-btn:active {
+	transform: translateY(0);
 }
 
 /* Home Products Featured Section */
