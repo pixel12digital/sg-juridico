@@ -1546,29 +1546,43 @@ add_action( 'wp_head', 'sg_inline_styles_my_account', 999 );
 
 /**
  * Buscar eventos de concursos (ETN e The Events Calendar)
+ * OTIMIZADO: Usa JOIN para evitar múltiplas consultas ao banco
+ * Com cache para reduzir conexões ao banco
  */
 function sg_get_concurso_events( $limit = 10, $categoria = null ) {
 	global $wpdb;
 	
+	// Cache de 5 minutos para reduzir consultas ao banco
+	$cache_key = 'sg_concurso_events_' . md5( serialize( array( $limit, $categoria ) ) );
+	$cached = wp_cache_get( $cache_key, 'sg_events' );
+	
+	if ( false !== $cached ) {
+		return $cached;
+	}
+	
 	$today = current_time( 'Y-m-d' );
 	$events = array();
 	
-	// Buscar eventos ETN usando SQL direto para melhor performance
-	$etn_ids = $wpdb->get_col( $wpdb->prepare( "
-		SELECT DISTINCT p.ID
+	// Buscar eventos ETN usando SQL direto com JOIN para melhor performance
+	// Evita múltiplas chamadas de get_post_meta() dentro de loops
+	$etn_query = $wpdb->get_results( $wpdb->prepare( "
+		SELECT p.ID, p.post_title, p.post_name,
+		       pm1.meta_value as start_date,
+		       pm2.meta_value as end_date
 		FROM {$wpdb->posts} p
+		LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = 'etn_start_date'
+		LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = 'etn_end_date'
 		WHERE p.post_type = 'etn'
 		AND p.post_status = 'publish'
+		AND (pm1.meta_value IS NOT NULL OR pm2.meta_value IS NOT NULL)
+		ORDER BY p.post_date DESC
 		LIMIT %d
 	", $limit * 2 ) );
 	
-	if ( ! empty( $etn_ids ) ) {
-		foreach ( $etn_ids as $post_id ) {
-			$start_date = get_post_meta( $post_id, 'etn_start_date', true );
-			$end_date = get_post_meta( $post_id, 'etn_end_date', true );
-			
+	if ( ! empty( $etn_query ) ) {
+		foreach ( $etn_query as $row ) {
 			// Aceitar eventos futuros ou recentes (últimos 30 dias)
-			$event_date = ! empty( $start_date ) ? $start_date : $end_date;
+			$event_date = ! empty( $row->start_date ) ? $row->start_date : $row->end_date;
 			
 			if ( $event_date ) {
 				// Se for evento futuro ou recente (últimos 30 dias), incluir
@@ -1576,7 +1590,7 @@ function sg_get_concurso_events( $limit = 10, $categoria = null ) {
 				$days_diff = ( $event_timestamp - strtotime( $today ) ) / ( 60 * 60 * 24 );
 				
 				if ( $days_diff >= -30 ) { // Eventos dos últimos 30 dias ou futuros
-					$event_title = get_the_title( $post_id );
+					$event_title = $row->post_title;
 					$event_categoria = sg_detect_event_category( $event_title );
 					
 					// Filtrar por categoria se especificada
@@ -1585,11 +1599,11 @@ function sg_get_concurso_events( $limit = 10, $categoria = null ) {
 					}
 					
 					$events[] = array(
-						'id'        => $post_id,
+						'id'        => $row->ID,
 						'title'     => $event_title,
 						'date'      => $event_date,
-						'end_date'  => $end_date,
-						'permalink' => get_permalink( $post_id ),
+						'end_date'  => $row->end_date,
+						'permalink' => get_permalink( $row->ID ),
 						'type'      => 'etn',
 						'categoria' => $event_categoria,
 					);
@@ -1670,44 +1684,62 @@ function sg_get_concurso_events( $limit = 10, $categoria = null ) {
 		return $date_a - $date_b;
 	} );
 	
-	return array_slice( $events, 0, $limit );
+	$result = array_slice( $events, 0, $limit );
+	
+	// Armazenar no cache por 5 minutos
+	wp_cache_set( $cache_key, $result, 'sg_events', 300 );
+	
+	return $result;
 }
 
 /**
  * Buscar todos os eventos para o calendário dinâmico
+ * OTIMIZADO: Usa JOIN para evitar múltiplas consultas ao banco
+ * Com cache para reduzir conexões ao banco
  */
 function sg_get_all_calendar_events() {
 	global $wpdb;
 	
+	// Cache de 10 minutos para reduzir consultas ao banco
+	$cache_key = 'sg_all_calendar_events';
+	$cached = wp_cache_get( $cache_key, 'sg_events' );
+	
+	if ( false !== $cached ) {
+		return $cached;
+	}
+	
 	$today = current_time( 'Y-m-d' );
 	$events = array();
 	
-	// Buscar todos os eventos ETN publicados
-	$etn_ids = $wpdb->get_col( "
-		SELECT DISTINCT p.ID
+	// Buscar todos os eventos ETN usando JOIN para evitar múltiplas consultas
+	$etn_query = $wpdb->get_results( "
+		SELECT p.ID, p.post_title, p.post_name,
+		       pm1.meta_value as start_date,
+		       pm2.meta_value as end_date
 		FROM {$wpdb->posts} p
+		LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = 'etn_start_date'
+		LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = 'etn_end_date'
 		WHERE p.post_type = 'etn'
 		AND p.post_status = 'publish'
+		AND (pm1.meta_value IS NOT NULL OR pm2.meta_value IS NOT NULL)
+		ORDER BY p.post_date DESC
 	" );
 	
-	if ( ! empty( $etn_ids ) ) {
-		foreach ( $etn_ids as $post_id ) {
-			$start_date = get_post_meta( $post_id, 'etn_start_date', true );
-			$end_date = get_post_meta( $post_id, 'etn_end_date', true );
-			
-			$event_date = ! empty( $start_date ) ? $start_date : $end_date;
+	if ( ! empty( $etn_query ) ) {
+		foreach ( $etn_query as $row ) {
+			$event_date = ! empty( $row->start_date ) ? $row->start_date : $row->end_date;
 			
 			if ( $event_date ) {
 				// Incluir todos os eventos, independentemente da data (incluindo passados)
-				$event_title = get_the_title( $post_id );
+				$event_title = $row->post_title;
 				$event_categoria = sg_detect_event_category( $event_title );
 				
 				$events[] = array(
-					'id'        => $post_id,
+					'id'        => $row->ID,
 					'title'     => $event_title,
 					'date'      => $event_date,
-					'end_date'  => $end_date,
-					'permalink' => get_permalink( $post_id ),
+					'end_date'  => $row->end_date,
+					'permalink' => get_permalink( $row->ID ),
 					'type'      => 'etn',
 					'categoria' => $event_categoria,
 				);
@@ -1715,29 +1747,33 @@ function sg_get_all_calendar_events() {
 		}
 	}
 	
-	// Buscar eventos The Events Calendar também
+	// Buscar eventos The Events Calendar também usando JOIN
 	if ( post_type_exists( 'tribe_events' ) ) {
-		$tribe_ids = $wpdb->get_col( "
-			SELECT DISTINCT p.ID
+		$tribe_query = $wpdb->get_results( "
+			SELECT p.ID, p.post_title, p.post_name,
+			       pm1.meta_value as start_date,
+			       pm2.meta_value as end_date
 			FROM {$wpdb->posts} p
-			LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_EventStartDate'
+			LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = '_EventStartDate'
+			LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = '_EventEndDate'
 			WHERE p.post_type = 'tribe_events'
 			AND p.post_status = 'publish'
+			AND pm1.meta_value IS NOT NULL
+			ORDER BY p.post_date DESC
 		" );
 		
-		foreach ( $tribe_ids as $post_id ) {
-			$start_date = get_post_meta( $post_id, '_EventStartDate', true );
-			if ( $start_date ) {
-				$start_date_str = is_numeric( $start_date ) ? date( 'Y-m-d', $start_date ) : date( 'Y-m-d', strtotime( $start_date ) );
-				$event_title = get_the_title( $post_id );
+		foreach ( $tribe_query as $row ) {
+			if ( $row->start_date ) {
+				$start_date_str = is_numeric( $row->start_date ) ? date( 'Y-m-d', $row->start_date ) : date( 'Y-m-d', strtotime( $row->start_date ) );
+				$event_title = $row->post_title;
 				$event_categoria = sg_detect_event_category( $event_title );
 				
 				$events[] = array(
-					'id'        => $post_id,
+					'id'        => $row->ID,
 					'title'     => $event_title,
 					'date'      => $start_date_str,
-					'end_date'  => null,
-					'permalink' => get_permalink( $post_id ),
+					'end_date'  => $row->end_date ? ( is_numeric( $row->end_date ) ? date( 'Y-m-d', $row->end_date ) : date( 'Y-m-d', strtotime( $row->end_date ) ) ) : null,
+					'permalink' => get_permalink( $row->ID ),
 					'type'      => 'tribe_events',
 					'categoria' => $event_categoria,
 				);
@@ -1752,8 +1788,34 @@ function sg_get_all_calendar_events() {
 		return $date_a - $date_b;
 	} );
 	
+	// Armazenar no cache por 10 minutos
+	wp_cache_set( $cache_key, $events, 'sg_events', 600 );
+	
 	return $events;
 }
+
+/**
+ * Limpar cache de eventos quando um evento for atualizado
+ */
+function sg_clear_events_cache( $post_id ) {
+	$post_type = get_post_type( $post_id );
+	
+	// Se for um evento (ETN ou tribe_events), limpar cache
+	if ( in_array( $post_type, array( 'etn', 'tribe_events' ) ) ) {
+		// Limpar cache principal
+		wp_cache_delete( 'sg_all_calendar_events', 'sg_events' );
+		// Limpar possíveis caches de consultas específicas
+		// Tentamos limpar os padrões mais comuns de cache key
+		for ( $limit = 10; $limit <= 50; $limit += 10 ) {
+			wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( $limit, null ) ) ), 'sg_events' );
+			wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( $limit, 'ministerio-publico' ) ) ), 'sg_events' );
+			wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( $limit, 'magistratura' ) ) ), 'sg_events' );
+			wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( $limit, 'delegado' ) ) ), 'sg_events' );
+		}
+	}
+}
+add_action( 'save_post', 'sg_clear_events_cache' );
+add_action( 'delete_post', 'sg_clear_events_cache' );
 
 /**
  * Contar eventos por categoria
