@@ -115,17 +115,41 @@ hr {
 	color: var(--sg-color-primary);
 }
 
+/* Padronização global de botões (referência: .product-badge.featured) */
+/* Base: aplicar a toda a UI (links/inputs/botões padrão e WooCommerce) */
+.button,
+button,
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+.wp-block-button__link,
 .woocommerce .button,
 .woocommerce button.button,
-.woocommerce a.button {
-	background-color: var(--sg-color-button-bg);
-	color: var(--sg-color-button-text);
+.woocommerce a.button,
+.woocommerce input.button,
+.woocommerce a.added_to_cart,
+.woocommerce .added_to_cart {
+    background-color: var(--sg-color-primary) !important;
+    color: var(--sg-color-button-text) !important; /* preto, como o badge */
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
 }
 
+.button:hover,
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover,
+.wp-block-button__link:hover,
 .woocommerce .button:hover,
 .woocommerce button.button:hover,
-.woocommerce a.button:hover {
-	background-color: var(--sg-color-button-hover);
+.woocommerce a.button:hover,
+.woocommerce input.button:hover,
+.woocommerce a.added_to_cart:hover,
+.woocommerce .added_to_cart:hover {
+    background-color: var(--sg-color-button-hover) !important;
 }
 
 /* Forçar cor padrão também para variações ".alt" do WooCommerce */
