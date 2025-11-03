@@ -677,6 +677,11 @@ body {
     overflow: visible;
 }
 
+/* Quando o carrossel contém apenas imagens, remover padding do container */
+.home-banner:has(.banner-slide-image) {
+    padding: 0;
+}
+
 .home-banner::after { display: none; }
 
 /* Hierarquia Visual - Melhor Prática */
@@ -763,7 +768,8 @@ body {
     .home-banner::after { display: none; }
     .home-carousel .carousel-slide { padding: 32px 16px; }
     .banner-slide-text { padding: 32px 16px; }
-    .banner-slide-image { padding: 32px 16px; }
+    .banner-slide-image { padding: 0; }
+    .banner-slide-image .banner-image-wrapper { aspect-ratio: 16 / 9; }
     .banner-content-wrapper { padding: 0 10px; }
     .home-banner .banner-title { font-size: 28px; margin-bottom: 10px; }
     .home-banner .banner-subtitle { font-size: 17px; margin-bottom: 10px; }
@@ -786,7 +792,8 @@ body {
     .home-banner { padding: 20px 12px; min-height: 350px; }
     .home-carousel .carousel-slide { padding: 28px 12px; }
     .banner-slide-text { padding: 28px 12px; }
-    .banner-slide-image { padding: 28px 12px; }
+    .banner-slide-image { padding: 0; }
+    .banner-slide-image .banner-image-wrapper { aspect-ratio: 16 / 9; }
     .home-banner .banner-title { font-size: 24px; }
     .home-banner .banner-subtitle { font-size: 15px; margin-bottom: 8px; }
     .banner-content-wrapper p + p { font-size: 14px; }
@@ -857,40 +864,45 @@ body {
     justify-content: center;
 }
 
+/* Remover padding quando for imagem para ocupar todo o espaço */
+.home-carousel .carousel-slide.banner-slide-image {
+    padding: 0;
+}
+
 .banner-slide-text {
     padding: 40px 24px;
 }
 
-/* Banner de imagem - garantir mesmo espaço do banner de texto */
+/* Banner de imagem - garantir mesmo espaço do banner de texto e formato 16:9 ou 2:1 */
 .banner-slide-image {
-    padding: 40px 24px; /* Mesmo padding do banner-slide-text e .carousel-slide */
+    padding: 0; /* Remove padding para imagem ocupar todo o espaço */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 100%;
     align-items: stretch;
     box-sizing: border-box;
 }
 
 .banner-slide-image .banner-image-wrapper {
     width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0; /* Sem padding adicional, já está no .banner-slide-image */
+    aspect-ratio: 16 / 9; /* Forçar proporção 16:9 */
+    display: block;
+    padding: 0;
     margin: 0;
     box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
 }
 
 .banner-slide-image .banner-image-wrapper img {
     width: 100%;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    height: 100%;
+    object-fit: cover; /* Preencher todo o espaço, cortando se necessário */
     display: block;
-    margin: 0 auto;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 /* Categorias dentro do slide do carrossel - Melhor Prática */
