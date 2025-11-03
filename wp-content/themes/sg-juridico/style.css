@@ -769,6 +769,7 @@ body {
     .home-carousel .carousel-slide { padding: 32px 16px; }
     .banner-slide-text { padding: 32px 16px; }
     .banner-slide-image { padding: 0; }
+    .home-carousel:has(.banner-slide-image) { aspect-ratio: 16 / 9; }
     .banner-slide-image .banner-image-wrapper { aspect-ratio: 16 / 9; }
     .banner-content-wrapper { padding: 0 10px; }
     .home-banner .banner-title { font-size: 28px; margin-bottom: 10px; }
@@ -793,6 +794,7 @@ body {
     .home-carousel .carousel-slide { padding: 28px 12px; }
     .banner-slide-text { padding: 28px 12px; }
     .banner-slide-image { padding: 0; }
+    .home-carousel:has(.banner-slide-image) { aspect-ratio: 16 / 9; }
     .banner-slide-image .banner-image-wrapper { aspect-ratio: 16 / 9; }
     .home-banner .banner-title { font-size: 24px; }
     .home-banner .banner-subtitle { font-size: 15px; margin-bottom: 8px; }
@@ -848,13 +850,29 @@ body {
 	}
 }
 
-.home-carousel { display: block; position: relative; overflow: hidden; }
-.home-carousel .carousel-track {
-    display: flex;
-    height: 100%;
-    transition: transform 0.6s ease;
+.home-carousel { 
+    display: block; 
+    position: relative; 
+    overflow: hidden;
+}
+
+/* Quando contém banner de imagem, usar aspect-ratio 16:9 baseado na largura */
+.home-carousel:has(.banner-slide-image) {
+    aspect-ratio: 16 / 9;
     width: 100%;
 }
+
+.home-carousel .carousel-track {
+    display: flex;
+    width: 100%;
+    transition: transform 0.6s ease;
+}
+
+/* Altura automática baseada no conteúdo, exceto para imagens */
+.home-carousel:has(.banner-slide-image) .carousel-track {
+    height: 100%;
+}
+
 .home-carousel .carousel-slide {
     flex: 0 0 100%;
     min-width: 0;
@@ -867,25 +885,26 @@ body {
 /* Remover padding quando for imagem para ocupar todo o espaço */
 .home-carousel .carousel-slide.banner-slide-image {
     padding: 0;
+    height: 100%;
 }
 
 .banner-slide-text {
     padding: 40px 24px;
 }
 
-/* Banner de imagem - garantir mesmo espaço do banner de texto e formato 16:9 ou 2:1 */
+/* Banner de imagem - garantir formato 16:9 exato */
 .banner-slide-image {
-    padding: 0; /* Remove padding para imagem ocupar todo o espaço */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
+    padding: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
     box-sizing: border-box;
+    position: relative;
 }
 
 .banner-slide-image .banner-image-wrapper {
     width: 100%;
-    aspect-ratio: 16 / 9; /* Forçar proporção 16:9 */
+    aspect-ratio: 16 / 9; /* Forçar proporção 16:9 - altura calculada automaticamente */
     display: block;
     padding: 0;
     margin: 0;
