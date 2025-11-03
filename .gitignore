@@ -1,7 +1,8 @@
 # WordPress - Estrutura na raiz (Hostinger deployment)
 # Ignorar apenas arquivos gerados, sensíveis e temporários
 
-# Arquivos de configuração sensíveis (backups apenas)
+# Arquivos de configuração sensíveis (CRÍTICO - não versionar wp-config.php)
+wp-config.php
 wp-config-local.php
 wp-config-backup.php
 *config-backup*
