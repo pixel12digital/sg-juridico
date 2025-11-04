@@ -1,8 +1,28 @@
 # BEGIN WordPress
+<IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /
+RewriteBase /sg-juridico/
+
+# SEGURANÇA: Bloquear acesso a arquivos de debug/teste em produção
+RewriteRule ^(teste-|debug-|fix-|test-|verificar-|phpinfo|ok\.php|simple) - [F,L]
+
+# SEGURANÇA: Bloquear acesso a arquivos de backup
+RewriteRule \.(bak|backup|old|sql|zip)$ - [F,L]
+
+# CRÍTICO: Não processar index.php novamente
 RewriteRule ^index\.php$ - [L]
+
+# CRÍTICO: Servir arquivos que existem fisicamente SEM redirecionamento
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# CRÍTICO: Servir diretórios que existem fisicamente SEM redirecionamento  
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Apenas redirecionar para WordPress se arquivo NÃO existe
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.php [L]
+RewriteRule . /sg-juridico/index.php [L]
+</IfModule>
 # END WordPress
