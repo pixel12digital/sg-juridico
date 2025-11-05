@@ -34,6 +34,9 @@ sg_juridico_public_html.zip
 test-db-connection.php
 RESUMO-OTIMIZACAO-BD.txt
 
+# Scripts temporários locais (não versionar)
+create-pagina-*-local.php
+
 # IDE
 .vscode/
 .idea/

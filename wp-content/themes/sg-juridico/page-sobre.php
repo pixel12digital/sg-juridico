@@ -29,6 +29,32 @@ body.page.sobre .site-main-wrapper {
 	min-height: auto !important;
 	height: auto !important;
 }
+/* Remover sidebar na página sobre */
+body.page-template-page-sobre #secondary.widget-area,
+body.page.sobre #secondary.widget-area {
+	display: none !important;
+}
+body.page-template-page-sobre .site-main-wrapper,
+body.page.sobre .site-main-wrapper {
+	flex-direction: column !important;
+}
+body.page-template-page-sobre .posts-container,
+body.page.sobre .posts-container {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+/* Garantir que o conteúdo ocupe toda a largura */
+body.page-template-page-sobre #primary.content-area,
+body.page.sobre #primary.content-area {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+body.page-template-page-sobre .entry-content .container,
+body.page.sobre .entry-content .container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 20px;
+}
 </style>
 
 <div id="primary" class="content-area">
@@ -49,17 +75,11 @@ body.page.sobre .site-main-wrapper {
 				<div class="entry-content">
 					<div class="container">
 						<?php
-						the_content();
-
-						wp_link_pages(
-							array(
-								'before' => '<div class="page-links">' . esc_html__( 'Pages:', 'sg-juridico' ),
-								'after'  => '</div>',
-							)
-						);
-						?>
-
-						<?php if ( ! have_posts() ) : ?>
+						$content = get_the_content();
+						
+						if ( empty( trim( $content ) ) ) :
+							// Se não há conteúdo, mostrar conteúdo padrão
+							?>
 							<div class="about-content">
 								<h2>Sobre o SG Jurídico</h2>
 								<p>O SG Jurídico é uma plataforma especializada em cursos preparatórios para concursos públicos na área jurídica, com foco em magistratura, ministério público, delegado, procurador e demais cargos da área jurídica.</p>
@@ -80,34 +100,20 @@ body.page.sobre .site-main-wrapper {
 								<h3>Nossa Equipe</h3>
 								<p>Contamos com professores especializados e material atualizado constantemente, garantindo que nossos alunos tenham acesso às melhores informações para os concursos.</p>
 							</div>
-						<?php endif; ?>
+							<?php
+						else :
+							the_content();
+
+							wp_link_pages(
+								array(
+									'before' => '<div class="page-links">' . esc_html__( 'Pages:', 'sg-juridico' ),
+									'after'  => '</div>',
+								)
+							);
+						endif;
+						?>
 					</div>
 				</div><!-- .entry-content -->
-
-				<?php if ( get_edit_post_link() ) : ?>
-					<footer class="entry-footer">
-						<div class="container">
-							<?php
-							edit_post_link(
-								sprintf(
-									wp_kses(
-										/* translators: %s: Name of current post. Only visible to screen readers */
-										__( 'Edit <span class="screen-reader-text">%s</span>', 'sg-juridico' ),
-										array(
-											'span' => array(
-												'class' => array(),
-											),
-										)
-									),
-									get_the_title()
-								),
-								'<span class="edit-link">',
-								'</span>'
-							);
-							?>
-						</div>
-					</footer><!-- .entry-footer -->
-				<?php endif; ?>
 			</article><!-- #post-<?php the_ID(); ?> -->
 
 			<?php
@@ -123,6 +129,5 @@ body.page.sobre .site-main-wrapper {
 </div><!-- #primary -->
 
 <?php
-get_sidebar();
 get_footer();
 

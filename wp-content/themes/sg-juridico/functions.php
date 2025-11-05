@@ -275,7 +275,10 @@ function sg_scripts() {
 		$contact_js = get_template_directory() . '/js/contact-form.js';
 		$js_version = file_exists( $contact_js ) ? filemtime( $contact_js ) : SG_VERSION;
 		wp_enqueue_script( 'sg-contact-form', get_template_directory_uri() . '/js/contact-form.js', array(), $js_version, true );
-		wp_localize_script( 'sg-contact-form', 'ajaxurl', admin_url( 'admin-ajax.php' ) );
+		wp_localize_script( 'sg-contact-form', 'sgContactAjax', array(
+			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'nonce' => wp_create_nonce( 'sg_contact_form' ),
+		) );
 	}
 }
 add_action( 'wp_enqueue_scripts', 'sg_scripts', 20 );
@@ -1879,6 +1882,14 @@ function sg_add_categories_to_cursos_menu( $items, $args ) {
 		return $items;
 	}
 	
+	// Verificar se já há itens dinâmicos adicionados (evitar duplicação e loop infinito)
+	foreach ( $items as $item ) {
+		if ( isset( $item->ID ) && ( $item->ID == 999999 || $item->ID > 1000000 ) ) {
+			// Já foi processado, retornar sem modificar
+			return $items;
+		}
+	}
+	
 	// Buscar o item do menu "Cursos"
 	foreach ( $items as $item ) {
 		// Verificar se é o item "Cursos" (pode ser por título ou URL)
@@ -1912,34 +1923,51 @@ function sg_add_categories_to_cursos_menu( $items, $args ) {
 					$todos_item->description = '';
 					$todos_item->classes = array( '' );
 					$todos_item->xfn = '';
+					$todos_item->current = false;
+					$todos_item->current_item_ancestor = false;
+					$todos_item->current_item_parent = false;
+					$todos_item->post_parent = 0;
+					$todos_item->post_type = 'nav_menu_item';
 					
 					// Adicionar após o item "Cursos"
 					$item_index = array_search( $item, $items );
-					array_splice( $items, $item_index + 1, 0, array( $todos_item ) );
-					
-					// Adicionar categorias
-					$menu_order = $item_index + 2;
-					foreach ( $categories as $category ) {
-						$cat_link = get_term_link( $category, 'product_cat' );
+					if ( $item_index !== false ) {
+						array_splice( $items, $item_index + 1, 0, array( $todos_item ) );
 						
-						$cat_item = new stdClass();
-						$cat_item->ID = $category->term_id + 1000000;
-						$cat_item->db_id = $category->term_id + 1000000;
-						$cat_item->menu_item_parent = $item->ID;
-						$cat_item->object_id = $category->term_id;
-						$cat_item->object = 'product_cat';
-						$cat_item->type = 'taxonomy';
-						$cat_item->type_label = 'Categoria';
-						$cat_item->url = $cat_link;
-						$cat_item->title = $category->name;
-						$cat_item->target = '';
-						$cat_item->attr_title = '';
-						$cat_item->description = '';
-						$cat_item->classes = array( '' );
-						$cat_item->xfn = '';
-						
-						array_splice( $items, $menu_order, 0, array( $cat_item ) );
-						$menu_order++;
+						// Adicionar categorias
+						$menu_order = $item_index + 2;
+						foreach ( $categories as $category ) {
+							$cat_link = get_term_link( $category, 'product_cat' );
+							
+							// Verificar se houve erro ao obter o link
+							if ( is_wp_error( $cat_link ) ) {
+								continue;
+							}
+							
+							$cat_item = new stdClass();
+							$cat_item->ID = $category->term_id + 1000000;
+							$cat_item->db_id = $category->term_id + 1000000;
+							$cat_item->menu_item_parent = $item->ID;
+							$cat_item->object_id = $category->term_id;
+							$cat_item->object = 'product_cat';
+							$cat_item->type = 'taxonomy';
+							$cat_item->type_label = 'Categoria';
+							$cat_item->url = $cat_link;
+							$cat_item->title = $category->name;
+							$cat_item->target = '';
+							$cat_item->attr_title = '';
+							$cat_item->description = '';
+							$cat_item->classes = array( '' );
+							$cat_item->xfn = '';
+							$cat_item->current = false;
+							$cat_item->current_item_ancestor = false;
+							$cat_item->current_item_parent = false;
+							$cat_item->post_parent = 0;
+							$cat_item->post_type = 'nav_menu_item';
+							
+							array_splice( $items, $menu_order, 0, array( $cat_item ) );
+							$menu_order++;
+						}
 					}
 				}
 			}

@@ -95,10 +95,18 @@
 		// Preparar dados
 		const formData = new FormData(contactForm);
 		formData.append('action', 'sg_send_contact_form');
-		formData.append('ajax_url', contactForm.dataset.ajaxUrl || '/wp-admin/admin-ajax.php');
+		
+		// Adicionar nonce se disponível
+		if (typeof sgContactAjax !== 'undefined' && sgContactAjax.nonce) {
+			formData.append('sg_contact_nonce', sgContactAjax.nonce);
+		}
+		
+		// Obter URL do AJAX do objeto localizado
+		const ajaxUrl = (typeof sgContactAjax !== 'undefined' && sgContactAjax.ajaxurl) 
+			? sgContactAjax.ajaxurl 
+			: '/wp-admin/admin-ajax.php';
 
 		// Enviar via AJAX
-		const ajaxUrl = typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php';
 		fetch(ajaxUrl, {
 			method: 'POST',
 			body: formData
