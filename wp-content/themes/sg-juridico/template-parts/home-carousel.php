@@ -15,9 +15,9 @@ if ( ! empty( $banner_images_str ) ) {
 	foreach ( $ids as $id ) {
 		$id = absint( trim( $id ) );
 		if ( $id > 0 ) {
-			// Verificar se a imagem ainda existe
-			$image_url = wp_get_attachment_image_url( $id, 'full' );
-			if ( $image_url ) {
+			// Verificar se a imagem ainda existe usando wp_get_attachment_image_src
+			$image_data = wp_get_attachment_image_src( $id, 'full' );
+			if ( $image_data && ! empty( $image_data[0] ) ) {
 				$banner_image_ids[] = $id;
 			}
 		}
@@ -34,7 +34,17 @@ if ( empty( $banner_image_ids ) || ! is_array( $banner_image_ids ) ) {
 	<div class="carousel-track">
 		<?php foreach ( $banner_image_ids as $index => $image_id ) : ?>
 			<?php
-			$image_url = wp_get_attachment_image_url( $image_id, 'full' );
+			// Usar wp_get_attachment_image_src para obter informações mais completas
+			$image_data = wp_get_attachment_image_src( $image_id, 'full' );
+			
+			if ( ! $image_data || empty( $image_data[0] ) ) {
+				continue;
+			}
+			
+			$image_url = $image_data[0];
+			$image_width = isset( $image_data[1] ) ? $image_data[1] : '';
+			$image_height = isset( $image_data[2] ) ? $image_data[2] : '';
+			
 			$image_alt = get_post_meta( $image_id, '_wp_attachment_image_alt', true );
 			
 			if ( empty( $image_alt ) ) {
@@ -46,17 +56,18 @@ if ( empty( $banner_image_ids ) || ! is_array( $banner_image_ids ) ) {
 			}
 			
 			$is_active = $index === 0 ? 'is-active' : '';
-			
-			if ( $image_url ) :
-				?>
-				<article class="carousel-slide <?php echo esc_attr( $is_active ); ?> banner-slide-image">
-					<div class="banner-image-wrapper">
-						<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $image_alt ); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" />
-					</div>
-				</article>
-				<?php
-			endif;
-		?>
+			?>
+			<article class="carousel-slide <?php echo esc_attr( $is_active ); ?> banner-slide-image">
+				<div class="banner-image-wrapper">
+					<img src="<?php echo esc_url( $image_url ); ?>" 
+						 alt="<?php echo esc_attr( $image_alt ); ?>" 
+						 <?php if ( $image_width ) : ?>width="<?php echo esc_attr( $image_width ); ?>"<?php endif; ?>
+						 <?php if ( $image_height ) : ?>height="<?php echo esc_attr( $image_height ); ?>"<?php endif; ?>
+						 loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" 
+						 data-banner-image="true" 
+						 onerror="this.style.display='block'; this.style.visibility='visible'; this.style.opacity='1';" />
+				</div>
+			</article>
 		<?php endforeach; ?>
 	</div>
 	<button class="carousel-prev" aria-label="Anterior">‹</button>
@@ -75,6 +86,73 @@ if ( empty( $banner_image_ids ) || ! is_array( $banner_image_ids ) ) {
 		var next=root.querySelector('.carousel-next');
 		var dots=root.querySelector('.carousel-dots');
 		if(!track || !slides.length || !prev || !next || !dots) return;
+		
+		// Função para converter URLs de produção para localhost
+		function convertProductionUrlToLocalhost(url) {
+			if (!url) return url;
+			var productionDomains = ['https://sgjuridico.com.br', 'http://sgjuridico.com.br', 'sgjuridico.com.br'];
+			var currentHost = window.location.origin;
+			var isLocal = currentHost.indexOf('localhost') !== -1 || currentHost.indexOf('127.0.0.1') !== -1 || currentHost.indexOf('local') !== -1;
+			
+			if (!isLocal) return url;
+			
+			for (var i = 0; i < productionDomains.length; i++) {
+				if (url.indexOf(productionDomains[i]) !== -1) {
+					url = url.replace(productionDomains[i], currentHost);
+					break;
+				}
+			}
+			return url;
+		}
+		
+		// Garantir que imagens do banner sejam exibidas
+		var bannerImages = root.querySelectorAll('img[data-banner-image]');
+		bannerImages.forEach(function(img) {
+			// Converter URL de produção para localhost se necessário
+			if (img.src) {
+				var convertedSrc = convertProductionUrlToLocalhost(img.src);
+				if (convertedSrc !== img.src) {
+					img.src = convertedSrc;
+				}
+			}
+			
+			// Remover qualquer estilo que possa estar ocultando a imagem
+			img.style.display = 'block';
+			img.style.visibility = 'visible';
+			img.style.opacity = '1';
+			
+			// Garantir que o atributo data-error-handled não interfira
+			img.removeAttribute('data-error-handled');
+			
+			// Verificar se a imagem carregou corretamente
+			if (!img.complete || img.naturalHeight === 0) {
+				// Se a imagem não carregou, tentar recarregar
+				var originalSrc = img.src;
+				img.onerror = function() {
+					// Tentar converter URL novamente e recarregar
+					var retrySrc = convertProductionUrlToLocalhost(originalSrc);
+					if (this.dataset.retry !== 'true') {
+						this.dataset.retry = 'true';
+						this.src = '';
+						setTimeout(function() {
+							img.src = retrySrc;
+						}, 100);
+					} else {
+						// Se ainda falhar, garantir que a imagem seja visível mesmo assim
+						this.style.display = 'block';
+						this.style.visibility = 'visible';
+						this.style.opacity = '1';
+					}
+				};
+				
+				// Forçar reload se necessário
+				if (img.src && !img.complete) {
+					var forceReload = img.src.split('?')[0] + '?t=' + new Date().getTime();
+					img.src = forceReload;
+				}
+			}
+		});
+		
 		var idx=0, timer=null, DUR=6000;
 		function renderDots(){
 			dots.innerHTML='';

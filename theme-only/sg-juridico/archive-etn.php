@@ -370,7 +370,7 @@ if ( ! is_post_type_archive( 'etn' ) && ! isset( $_GET['post_type'] ) ) {
 													</div>
 												<?php endif; ?>
 												
-												<a href="<?php the_permalink(); ?>" class="evento-detail-link" target="_blank">
+												<a href="<?php the_permalink(); ?>" class="evento-detail-link">
 													Ver página completa →
 												</a>
 											</div>

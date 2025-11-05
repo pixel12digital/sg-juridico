@@ -931,11 +931,20 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover; /* Preencher todo o espaço, cortando se necessário */
-    display: block;
+    display: block !important;
     margin: 0;
     position: absolute;
     top: 0;
     left: 0;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Garantir que imagens do banner sejam sempre visíveis */
+.banner-slide-image img[data-banner-image] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Categorias dentro do slide do carrossel - Melhor Prática */
@@ -3160,9 +3169,11 @@ body.woocommerce-shop ul.products li.product .product-info {
 
 .woocommerce ul.products li.product > a,
 .woocommerce.archive ul.products li.product > a,
-body.woocommerce-shop ul.products li.product > a {
+body.woocommerce-shop ul.products li.product > a,
+.woocommerce ul.products li.product .woocommerce-loop-product__link {
 	background: transparent !important;
 	background-color: transparent !important;
+	box-shadow: none !important;
 }
 
 /* Garantir que botões da loja NUNCA tenham bordas - SEMPRE SEM BORDA */
@@ -3240,8 +3251,9 @@ body.woocommerce-shop ul.products li.product button.button:hover,
 	color: #000 !important;
 	margin: 0 !important;
 	padding: 12px !important;
-	background: var(--sg-color-primary) !important;
-	border-radius: 6px 6px 0 0 !important;
+	background: transparent !important;
+	background-color: transparent !important;
+	border-radius: 0 !important;
 	text-transform: uppercase !important;
 	line-height: 1.3 !important;
 }
@@ -3254,8 +3266,9 @@ body.woocommerce-shop ul.products li.product button.button:hover,
 	color: #000 !important;
 	margin: 0 !important;
 	padding: 0 12px 12px 12px !important;
-	background: var(--sg-color-primary) !important;
-	border-radius: 0 0 6px 6px !important;
+	background: transparent !important;
+	background-color: transparent !important;
+	border-radius: 0 !important;
 }
 
 /* Featured Content Section */
@@ -5069,6 +5082,17 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 		gap: 15px;
 	}
 	
+	/* Loja: apenas 2 produtos por linha em mobile */
+	body.woocommerce-shop .woocommerce ul.products,
+	body.post-type-archive-product .woocommerce ul.products,
+	body.tax-product_cat .woocommerce ul.products,
+	body.woocommerce-page .woocommerce ul.products,
+	.woocommerce.archive ul.products,
+	.site-main .woocommerce ul.products {
+		grid-template-columns: repeat(2, 1fr) !important;
+		gap: 15px;
+	}
+	
 	.categories-inline {
 		gap: 10px;
 	}
@@ -5123,6 +5147,32 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 10px;
+	}
+	
+	/* Esconder terceiro produto e seguintes em todas as seções de produtos da home em mobile */
+	/* Produtos em Destaque */
+	.home-products-featured .products-grid li:nth-child(n+3),
+	.home-products-featured .products-grid .product-item:nth-child(n+3),
+	/* Mais Vendidos */
+	.home-products-best-selling .products-grid li:nth-child(n+3),
+	.home-products-best-selling .products-grid-small li:nth-child(n+3),
+	.home-products-best-selling .products-grid .product-item:nth-child(n+3),
+	.home-products-best-selling .products-grid-small .product-item:nth-child(n+3),
+	/* Confira */
+	.home-products-confira .products-grid li:nth-child(n+3),
+	.home-products-confira .products-grid .product-item:nth-child(n+3),
+	/* Categorias */
+	.home-category-products .products-grid-category li:nth-child(n+3),
+	.home-category-products .products-grid.products-grid-category li:nth-child(n+3),
+	.home-category-products .products-grid-category .product-item:nth-child(n+3),
+	.home-category-products .products-grid.products-grid-category .product-item:nth-child(n+3) {
+		display: none !important;
+		visibility: hidden !important;
+		opacity: 0 !important;
+		height: 0 !important;
+		overflow: hidden !important;
+		margin: 0 !important;
+		padding: 0 !important;
 	}
 }
 

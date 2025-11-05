@@ -1091,6 +1091,12 @@ function sg_add_thumbnails_via_javascript() {
 		window.addEventListener('error', function(e) {
 			if (e.target && e.target.tagName === 'IMG') {
 				var img = e.target;
+				
+				// Pular imagens do banner - não ocultar ou tratar erros delas
+				if (img.hasAttribute('data-banner-image')) {
+					return;
+				}
+				
 				var imgSrc = img.src || '';
 				
 				var isProblematic = problematicImages.some(function(pattern) {
@@ -1112,6 +1118,11 @@ function sg_add_thumbnails_via_javascript() {
 		function addErrorHandlers() {
 			var images = document.querySelectorAll('img');
 			images.forEach(function(img) {
+				// Pular imagens do banner - não aplicar handlers de erro a elas
+				if (img.hasAttribute('data-banner-image')) {
+					return;
+				}
+				
 				if (!img.hasAttribute('data-error-handled')) {
 					img.setAttribute('data-error-handled', 'true');
 					
@@ -3900,4 +3911,60 @@ function sg_get_home_banner_images() {
 	return $banner_image_ids;
 }
 
+/**
+ * Converter URLs de produção para localhost quando necessário
+ * Isso resolve o problema de imagens não carregarem localmente quando o banco foi migrado de produção
+ */
+function sg_convert_production_urls_to_localhost( $url ) {
+	// Se não for uma URL completa, retornar como está
+	if ( ! is_string( $url ) || empty( $url ) ) {
+		return $url;
+	}
+	
+	// Verificar se estamos em ambiente local (localhost)
+	$home_url = home_url();
+	$is_local = (
+		strpos( $home_url, 'localhost' ) !== false ||
+		strpos( $home_url, '127.0.0.1' ) !== false ||
+		strpos( $home_url, 'local' ) !== false ||
+		( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE === 'local' )
+	);
+	
+	// Se não estiver em ambiente local, retornar URL original
+	if ( ! $is_local ) {
+		return $url;
+	}
+	
+	// Converter URLs de produção para localhost
+	$production_domains = array(
+		'https://sgjuridico.com.br',
+		'http://sgjuridico.com.br',
+		'sgjuridico.com.br'
+	);
+	
+	foreach ( $production_domains as $domain ) {
+		if ( strpos( $url, $domain ) !== false ) {
+			// Substituir pelo domínio local
+			$url = str_replace( $domain, $home_url, $url );
+			break;
+		}
+	}
+	
+	return $url;
+}
+
+// Aplicar filtro em todas as URLs de attachments
+add_filter( 'wp_get_attachment_url', 'sg_convert_production_urls_to_localhost', 10, 1 );
+add_filter( 'attachment_link', 'sg_convert_production_urls_to_localhost', 10, 1 );
+
+// Filtrar URLs dentro de wp_get_attachment_image_src
+add_filter( 'wp_get_attachment_image_src', function( $image, $attachment_id, $size, $icon ) {
+	if ( is_array( $image ) && ! empty( $image[0] ) ) {
+		$image[0] = sg_convert_production_urls_to_localhost( $image[0] );
+	}
+	return $image;
+}, 10, 4 );
+
+// Filtrar URLs retornadas por wp_get_attachment_image_url
+add_filter( 'wp_get_attachment_image_url', 'sg_convert_production_urls_to_localhost', 10, 1 );
 

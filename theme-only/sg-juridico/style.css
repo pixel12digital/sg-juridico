@@ -4685,6 +4685,17 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 		gap: 15px;
 	}
 	
+	/* Loja: apenas 2 produtos por linha em mobile */
+	body.woocommerce-shop .woocommerce ul.products,
+	body.post-type-archive-product .woocommerce ul.products,
+	body.tax-product_cat .woocommerce ul.products,
+	body.woocommerce-page .woocommerce ul.products,
+	.woocommerce.archive ul.products,
+	.site-main .woocommerce ul.products {
+		grid-template-columns: repeat(2, 1fr) !important;
+		gap: 15px;
+	}
+	
 	.categories-inline {
 		gap: 10px;
 	}
@@ -4739,6 +4750,32 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 10px;
+	}
+	
+	/* Esconder terceiro produto e seguintes em todas as seções de produtos da home em mobile */
+	/* Produtos em Destaque */
+	.home-products-featured .products-grid li:nth-child(n+3),
+	.home-products-featured .products-grid .product-item:nth-child(n+3),
+	/* Mais Vendidos */
+	.home-products-best-selling .products-grid li:nth-child(n+3),
+	.home-products-best-selling .products-grid-small li:nth-child(n+3),
+	.home-products-best-selling .products-grid .product-item:nth-child(n+3),
+	.home-products-best-selling .products-grid-small .product-item:nth-child(n+3),
+	/* Confira */
+	.home-products-confira .products-grid li:nth-child(n+3),
+	.home-products-confira .products-grid .product-item:nth-child(n+3),
+	/* Categorias */
+	.home-category-products .products-grid-category li:nth-child(n+3),
+	.home-category-products .products-grid.products-grid-category li:nth-child(n+3),
+	.home-category-products .products-grid-category .product-item:nth-child(n+3),
+	.home-category-products .products-grid.products-grid-category .product-item:nth-child(n+3) {
+		display: none !important;
+		visibility: hidden !important;
+		opacity: 0 !important;
+		height: 0 !important;
+		overflow: hidden !important;
+		margin: 0 !important;
+		padding: 0 !important;
 	}
 }
 
