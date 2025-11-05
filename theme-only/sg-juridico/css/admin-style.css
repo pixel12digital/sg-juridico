@@ -289,6 +289,25 @@ a:focus {
 	color: var(--sg-admin-primary-dark) !important;
 }
 
+/* Links em cor padrão de texto */
+.wp-list-table .row-actions a,
+.wp-list-table .row-actions a:hover,
+.wp-list-table .row-actions a:focus,
+.wp-list-table .taxonomy-category a,
+.wp-list-table .taxonomy-category a:hover,
+.wp-list-table .taxonomy-category a:focus,
+.wp-list-table .taxonomy-post_tag a,
+.wp-list-table .taxonomy-post_tag a:hover,
+.wp-list-table .taxonomy-post_tag a:focus,
+.wp-list-table td a:not(.button):not(.page-title-action),
+.wp-list-table td a:not(.button):not(.page-title-action):hover,
+.wp-list-table td a:not(.button):not(.page-title-action):focus,
+#wpfooter a,
+#wpfooter a:hover,
+#wpfooter a:focus {
+	color: var(--sg-admin-text) !important;
+}
+
 /* ============================================
    NOTIFICAÇÕES E ALERTAS
    ============================================ */

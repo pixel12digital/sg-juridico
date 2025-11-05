@@ -40,15 +40,18 @@
 				</div>
 
 				<!-- Barra de Pesquisa -->
-				<div class="header-search">
+				<div class="header-search" style="position: relative;">
 					<form role="search" method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
-						<input type="search" name="s" class="search-field" placeholder="<?php esc_attr_e( 'Buscar cursos...', 'sg-juridico' ); ?>" value="<?php echo get_search_query(); ?>">
+						<input type="search" name="s" id="header-search-input" class="search-field" placeholder="<?php esc_attr_e( 'Buscar cursos...', 'sg-juridico' ); ?>" value="<?php echo get_search_query(); ?>" autocomplete="off">
 						<button type="submit" class="search-submit" aria-label="<?php esc_attr_e( 'Buscar', 'sg-juridico' ); ?>">
 							<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
 								<path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18 18l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 							</svg>
 						</button>
 					</form>
+					<div id="search-preview" class="search-preview" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; max-height: 400px; overflow-y: auto; margin-top: 5px;">
+						<div id="search-preview-content"></div>
+					</div>
 				</div>
 
 				<!-- Botões de Acesso / CTA / Carrinho -->

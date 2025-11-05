@@ -110,31 +110,132 @@ if ( ! is_post_type_archive( 'etn' ) && ! isset( $_GET['post_type'] ) ) {
 				}
 				
 				// Query personalizada baseada nos filtros
+				// ATUALIZADO: Buscar eventos próprios (sg_eventos) e ETN
 				global $wp_query;
 				$today = current_time( 'Y-m-d' );
 				$paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
 				
+				// Tipos de post a buscar (prioridade para sg_eventos)
+				// Verificar diretamente no banco de dados se existem eventos, mesmo que post types não estejam registrados
+				global $wpdb;
+				$post_types = array();
+				
+				// Verificar se sg_eventos existe OU se há eventos sg_eventos no banco
+				if ( post_type_exists( 'sg_eventos' ) ) {
+					$post_types[] = 'sg_eventos';
+				} else {
+					$count_sg = $wpdb->get_var( $wpdb->prepare(
+						"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+						'sg_eventos'
+					) );
+					if ( $count_sg > 0 ) {
+						$post_types[] = 'sg_eventos';
+					}
+				}
+				
+				// Verificar se etn existe OU se há eventos etn no banco
+				if ( post_type_exists( 'etn' ) ) {
+					$post_types[] = 'etn';
+				} else {
+					$count_etn = $wpdb->get_var( $wpdb->prepare(
+						"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+						'etn'
+					) );
+					if ( $count_etn > 0 ) {
+						$post_types[] = 'etn';
+					}
+				}
+				
+				// Se não tiver nenhum tipo disponível, mostrar mensagem
+				if ( empty( $post_types ) ) {
+					echo '<div class="no-events"><p>Nenhum sistema de eventos configurado.</p></div>';
+					get_footer();
+					return;
+				}
+				
+				// Para múltiplos tipos de post, usar meta_query mais complexo
 				$args = array(
-					'post_type'      => 'etn',
+					'post_type'      => $post_types,
 					'post_status'    => 'publish',
 					'posts_per_page' => 20,
 					'paged'          => $paged,
-					'orderby'        => 'meta_value',
-					'meta_key'       => 'etn_start_date',
-					'meta_type'      => 'DATE',
 					'order'          => 'ASC',
+					'fields'         => 'all',
+					'update_post_term_cache' => true,
+					'update_post_meta_cache' => true,
+					'meta_query'     => array(
+						'relation' => 'OR',
+						array(
+							'key'     => '_sg_evento_data_inicio',
+							'compare' => 'EXISTS',
+						),
+						array(
+							'key'     => 'etn_start_date',
+							'compare' => 'EXISTS',
+						),
+					),
+					'orderby'         => 'meta_value',
+					'meta_key'       => '_sg_evento_data_inicio',
+					'meta_type'      => 'DATE',
 				);
 				
 				// Buscar todos os posts primeiro para filtrar por categoria
+				// Tentar usar WP_Query primeiro
 				$all_events_query = new WP_Query( array(
-					'post_type'      => 'etn',
+					'post_type'      => $post_types,
 					'post_status'    => 'publish',
 					'posts_per_page' => -1,
-					'orderby'        => 'meta_value',
-					'meta_key'       => 'etn_start_date',
+					'fields'         => 'all',
+					'update_post_term_cache' => true,
+					'update_post_meta_cache' => true,
+					'meta_query'     => array(
+						'relation' => 'OR',
+						array(
+							'key'     => '_sg_evento_data_inicio',
+							'compare' => 'EXISTS',
+						),
+						array(
+							'key'     => 'etn_start_date',
+							'compare' => 'EXISTS',
+						),
+					),
+					'orderby'         => 'meta_value',
+					'meta_key'       => '_sg_evento_data_inicio',
 					'meta_type'      => 'DATE',
 					'order'          => 'ASC',
 				) );
+				
+				// Se WP_Query não retornou posts mas sabemos que existem eventos no banco, buscar diretamente
+				if ( $all_events_query->post_count === 0 ) {
+					$post_types_escaped = array_map( 'esc_sql', $post_types );
+					$post_types_sql = "'" . implode( "','", $post_types_escaped ) . "'";
+					
+					$results = $wpdb->get_results( "
+						SELECT p.ID
+						FROM {$wpdb->posts} p
+						LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = '_sg_evento_data_inicio'
+						LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = 'etn_start_date'
+						WHERE p.post_type IN ($post_types_sql)
+						AND p.post_status = 'publish'
+						AND (pm1.meta_value IS NOT NULL OR pm2.meta_value IS NOT NULL)
+						ORDER BY COALESCE(pm1.meta_value, pm2.meta_value) ASC
+					" );
+					
+					if ( ! empty( $results ) ) {
+						// Criar um objeto WP_Query simulado com os IDs encontrados
+						$ids = array_map( 'intval', wp_list_pluck( $results, 'ID' ) );
+						$all_events_query = new WP_Query( array(
+							'post__in'       => $ids,
+							'post_status'    => 'publish',
+							'posts_per_page' => -1,
+							'orderby'        => 'post__in',
+							'order'          => 'ASC',
+							'fields'         => 'all', // Definir fields explicitamente
+							'update_post_term_cache' => true,
+							'update_post_meta_cache' => true,
+						) );
+					}
+				}
 				
 				$filtered_post_ids = array();
 				
@@ -172,21 +273,36 @@ if ( ! is_post_type_archive( 'etn' ) && ! isset( $_GET['post_type'] ) ) {
 					// Se não tem filtro de categoria, usar todos os IDs encontrados
 					$ids_to_filter = ! empty( $filtered_post_ids ) ? $filtered_post_ids : array();
 					
-					// Se não tem filtro de categoria, buscar todos os posts ETN
+					// Se não tem filtro de categoria, buscar todos os posts
 					if ( empty( $ids_to_filter ) && empty( $_GET['categoria'] ) ) {
-						$temp_query = new WP_Query( array(
-							'post_type'      => 'etn',
-							'post_status'    => 'publish',
-							'posts_per_page' => -1,
-							'fields'         => 'ids',
-						) );
-						$ids_to_filter = $temp_query->posts;
-						wp_reset_postdata();
+						// Se já temos posts da query inicial, usar eles
+						if ( $all_events_query->have_posts() ) {
+							$ids_to_filter = wp_list_pluck( $all_events_query->posts, 'ID' );
+						} else {
+							// Se não temos posts, buscar diretamente do banco
+							$post_types_escaped = array_map( 'esc_sql', $post_types );
+							$post_types_sql = "'" . implode( "','", $post_types_escaped ) . "'";
+							$temp_results = $wpdb->get_results( "
+								SELECT p.ID
+								FROM {$wpdb->posts} p
+								LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = '_sg_evento_data_inicio'
+								LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = 'etn_start_date'
+								WHERE p.post_type IN ($post_types_sql)
+								AND p.post_status = 'publish'
+								AND (pm1.meta_value IS NOT NULL OR pm2.meta_value IS NOT NULL)
+							" );
+							if ( ! empty( $temp_results ) ) {
+								$ids_to_filter = array_map( 'intval', wp_list_pluck( $temp_results, 'ID' ) );
+							}
+						}
 					}
 					
 					// Aplicar filtros de data
 					foreach ( $ids_to_filter as $post_id ) {
-						$start_date = get_post_meta( $post_id, 'etn_start_date', true );
+						$post_type = get_post_type( $post_id );
+						// Detectar qual meta key usar baseado no tipo de post
+						$meta_key_start = ( $post_type === 'sg_eventos' ) ? '_sg_evento_data_inicio' : 'etn_start_date';
+						$start_date = get_post_meta( $post_id, $meta_key_start, true );
 						
 						// Filtro por mês
 						$match_mes = true;
@@ -235,14 +351,52 @@ if ( ! is_post_type_archive( 'etn' ) && ! isset( $_GET['post_type'] ) ) {
 					}
 				}
 					
-					$events_query = new WP_Query( $args );
+				$events_query = new WP_Query( $args );
+				
+				// Se WP_Query não retornou posts mas temos IDs filtrados, usar busca direta
+				if ( $events_query->post_count === 0 && ! empty( $final_filtered_ids ) ) {
+					$posts = array();
+					foreach ( $final_filtered_ids as $post_id ) {
+						$post = get_post( $post_id );
+						if ( $post && $post->post_status === 'publish' ) {
+							$posts[] = $post;
+						}
+					}
+					
+					if ( ! empty( $posts ) ) {
+						// Criar objeto WP_Query customizado com os posts carregados
+						$events_query = new WP_Query( array(
+							'post__in'                => wp_list_pluck( $posts, 'ID' ),
+							'post_status'            => 'publish',
+							'posts_per_page'         => 20,
+							'paged'                  => $paged,
+							'orderby'                => 'post__in',
+							'order'                  => 'ASC',
+							'fields'                 => 'all',
+							'update_post_term_cache' => true,
+							'update_post_meta_cache' => true,
+						) );
+						// Sobrescrever propriedades para manter compatibilidade
+						$events_query->posts = $posts;
+						$events_query->post_count = count( $posts );
+						$events_query->found_posts = count( $posts );
+						$events_query->max_num_pages = ceil( count( $posts ) / 20 );
+						$events_query->current_post = -1;
+					}
+				}
 				
 				if ( $events_query->have_posts() ) :
 				?>
 					<div class="eventos-grid">
 						<?php while ( $events_query->have_posts() ) : $events_query->the_post(); 
-							$start_date = get_post_meta( get_the_ID(), 'etn_start_date', true );
-							$end_date = get_post_meta( get_the_ID(), 'etn_end_date', true );
+							$current_post_type = get_post_type();
+							// Detectar qual meta key usar baseado no tipo de post
+							$meta_key_start = ( $current_post_type === 'sg_eventos' ) ? '_sg_evento_data_inicio' : 'etn_start_date';
+							$meta_key_end = ( $current_post_type === 'sg_eventos' ) ? '_sg_evento_data_fim' : 'etn_end_date';
+							$meta_key_location = ( $current_post_type === 'sg_eventos' ) ? '_sg_evento_local' : 'etn_location';
+							
+							$start_date = get_post_meta( get_the_ID(), $meta_key_start, true );
+							$end_date = get_post_meta( get_the_ID(), $meta_key_end, true );
 							
 							$date_timestamp = $start_date ? strtotime( $start_date ) : false;
 							if ( $date_timestamp ) {
@@ -299,10 +453,43 @@ if ( ! is_post_type_archive( 'etn' ) && ! isset( $_GET['post_type'] ) ) {
 										<!-- Conteúdo expandível -->
 										<div class="evento-card-details" id="evento-details-<?php the_ID(); ?>" style="display: none;">
 											<?php
-											$event_location = get_post_meta( get_the_ID(), 'etn_location', true );
-											$event_organizer = get_post_meta( get_the_ID(), 'etn_organizer', true );
+											$event_location = get_post_meta( get_the_ID(), $meta_key_location, true );
+											$event_address = ( $current_post_type === 'sg_eventos' ) ? get_post_meta( get_the_ID(), '_sg_evento_endereco', true ) : '';
+											$event_organizer = ( $current_post_type === 'sg_eventos' ) ? '' : get_post_meta( get_the_ID(), 'etn_organizer', true );
 											$event_schedule = get_post_meta( get_the_ID(), 'etn_event_schedule', true );
 											$event_category = sg_detect_event_category( get_the_title() );
+											
+											// Carregar horários e datas de inscrição
+											$hora_inicio = get_post_meta( get_the_ID(), '_sg_evento_hora_inicio', true );
+											$hora_fim = get_post_meta( get_the_ID(), '_sg_evento_hora_fim', true );
+											$data_inscricao_inicio = get_post_meta( get_the_ID(), '_sg_evento_inscricao_inicio', true );
+											$data_inscricao_fim = get_post_meta( get_the_ID(), '_sg_evento_inscricao_fim', true );
+											
+											// Formatar horários
+											if ( ! empty( $hora_inicio ) && strlen( $hora_inicio ) >= 5 ) {
+												$hora_inicio = substr( $hora_inicio, 0, 5 );
+											}
+											if ( ! empty( $hora_fim ) && strlen( $hora_fim ) >= 5 ) {
+												$hora_fim = substr( $hora_fim, 0, 5 );
+											}
+											
+											// Formatar datas de inscrição
+											$data_inscricao_inicio_formatted = '';
+											$data_inscricao_fim_formatted = '';
+											if ( ! empty( $data_inscricao_inicio ) ) {
+												$data_inscricao_inicio_formatted = date_i18n( 'd/m/Y', strtotime( $data_inscricao_inicio ) );
+											}
+											if ( ! empty( $data_inscricao_fim ) ) {
+												$data_inscricao_fim_formatted = date_i18n( 'd/m/Y', strtotime( $data_inscricao_fim ) );
+											}
+											
+											// Se for sg_eventos, tentar pegar categoria da taxonomia
+											if ( $current_post_type === 'sg_eventos' ) {
+												$tax_terms = get_the_terms( get_the_ID(), 'sg_evento_categoria' );
+												if ( $tax_terms && ! is_wp_error( $tax_terms ) ) {
+													$event_category = $tax_terms[0]->slug;
+												}
+											}
 											$categorias_nomes = array(
 												'ministerio-publico' => 'Ministério Público',
 												'magistratura' => 'Magistratura',
@@ -323,7 +510,31 @@ if ( ! is_post_type_archive( 'etn' ) && ! isset( $_GET['post_type'] ) ) {
 												
 												<?php if ( $start_date ) : ?>
 													<div class="evento-detail-item">
-														<strong>📅 Data de Início:</strong> <?php echo esc_html( $full_date ); ?>
+														<strong>📅 Data da Realização:</strong> <?php echo esc_html( $full_date ); ?>
+														<?php if ( ! empty( $hora_inicio ) ) : ?>
+															 às <?php echo esc_html( $hora_inicio ); ?>
+														<?php endif; ?>
+													</div>
+												<?php endif; ?>
+												
+												<?php if ( ! empty( $hora_fim ) ) : ?>
+													<div class="evento-detail-item">
+														<strong>⏰ Horário de Término:</strong> <?php echo esc_html( $hora_fim ); ?>
+													</div>
+												<?php endif; ?>
+												
+												<?php if ( ! empty( $data_inscricao_inicio ) || ! empty( $data_inscricao_fim ) ) : ?>
+													<div class="evento-detail-item">
+														<strong>📝 Período de Inscrições:</strong>
+														<?php if ( ! empty( $data_inscricao_inicio ) ) : ?>
+															<?php echo esc_html( $data_inscricao_inicio_formatted ); ?>
+														<?php endif; ?>
+														<?php if ( ! empty( $data_inscricao_inicio ) && ! empty( $data_inscricao_fim ) ) : ?>
+															 até 
+														<?php endif; ?>
+														<?php if ( ! empty( $data_inscricao_fim ) ) : ?>
+															<?php echo esc_html( $data_inscricao_fim_formatted ); ?>
+														<?php endif; ?>
 													</div>
 												<?php endif; ?>
 												
@@ -341,23 +552,33 @@ if ( ! is_post_type_archive( 'etn' ) && ! isset( $_GET['post_type'] ) ) {
 													</div>
 												<?php endif; ?>
 												
+												<?php if ( $event_address ) : ?>
+													<div class="evento-detail-item">
+														<strong>📍 Endereço:</strong> <?php echo esc_html( $event_address ); ?>
+													</div>
+												<?php endif; ?>
+												
 												<?php if ( $event_organizer ) : ?>
 													<div class="evento-detail-item">
 														<strong>👤 Organizador:</strong> <?php echo esc_html( $event_organizer ); ?>
 													</div>
 												<?php endif; ?>
 												
-												<div class="evento-detail-description">
-													<?php 
-													$content = get_the_content();
-													if ( empty( $content ) ) {
-														$content = get_the_excerpt();
-													}
-													if ( ! empty( $content ) ) {
-														echo wp_kses_post( wpautop( $content ) );
-													}
-													?>
-												</div>
+												<?php
+												// Buscar descrição/conteúdo do post
+												$event_description = get_the_content();
+												if ( empty( $event_description ) ) {
+													$event_description = get_the_excerpt();
+												}
+												// Limpar shortcodes e tags HTML se necessário
+												$event_description = apply_filters( 'the_content', $event_description );
+												?>
+												<?php if ( ! empty( $event_description ) ) : ?>
+													<div class="evento-detail-description">
+														<h5>Descrição</h5>
+														<?php echo wp_kses_post( $event_description ); ?>
+													</div>
+												<?php endif; ?>
 												
 												<?php if ( $event_schedule && is_array( $event_schedule ) ) : ?>
 													<div class="evento-detail-schedule">

@@ -55,6 +55,614 @@ function sg_setup() {
 add_action( 'after_setup_theme', 'sg_setup' );
 
 /**
+ * ============================================
+ * SISTEMA PRÓPRIO DE EVENTOS - SG JURÍDICO
+ * ============================================
+ * Sistema completo de gerenciamento de eventos
+ * sem dependência de plugins externos
+ */
+
+/**
+ * Registrar Custom Post Type: sg_eventos
+ */
+function sg_register_eventos_post_type() {
+	$labels = array(
+		'name'                  => _x( 'Eventos', 'Post Type General Name', 'sg-juridico' ),
+		'singular_name'         => _x( 'Evento', 'Post Type Singular Name', 'sg-juridico' ),
+		'menu_name'             => __( 'Eventos', 'sg-juridico' ),
+		'name_admin_bar'        => __( 'Evento', 'sg-juridico' ),
+		'archives'              => __( 'Arquivo de Eventos', 'sg-juridico' ),
+		'attributes'            => __( 'Atributos do Evento', 'sg-juridico' ),
+		'parent_item_colon'     => __( 'Evento Pai:', 'sg-juridico' ),
+		'all_items'             => __( 'Todos os Eventos', 'sg-juridico' ),
+		'add_new_item'          => __( 'Adicionar Novo Evento', 'sg-juridico' ),
+		'add_new'               => __( 'Adicionar Novo', 'sg-juridico' ),
+		'new_item'              => __( 'Novo Evento', 'sg-juridico' ),
+		'edit_item'             => __( 'Editar Evento', 'sg-juridico' ),
+		'update_item'           => __( 'Atualizar Evento', 'sg-juridico' ),
+		'view_item'             => __( 'Ver Evento', 'sg-juridico' ),
+		'view_items'            => __( 'Ver Eventos', 'sg-juridico' ),
+		'search_items'          => __( 'Buscar Eventos', 'sg-juridico' ),
+		'not_found'             => __( 'Não encontrado', 'sg-juridico' ),
+		'not_found_in_trash'    => __( 'Não encontrado na lixeira', 'sg-juridico' ),
+		'featured_image'        => __( 'Imagem do Evento', 'sg-juridico' ),
+		'set_featured_image'    => __( 'Definir imagem do evento', 'sg-juridico' ),
+		'remove_featured_image' => __( 'Remover imagem do evento', 'sg-juridico' ),
+		'use_featured_image'    => __( 'Usar como imagem do evento', 'sg-juridico' ),
+		'insert_into_item'      => __( 'Inserir no evento', 'sg-juridico' ),
+		'uploaded_to_this_item' => __( 'Carregado para este evento', 'sg-juridico' ),
+		'items_list'            => __( 'Lista de eventos', 'sg-juridico' ),
+		'items_list_navigation' => __( 'Navegação da lista de eventos', 'sg-juridico' ),
+		'filter_items_list'     => __( 'Filtrar lista de eventos', 'sg-juridico' ),
+	);
+
+	$args = array(
+		'label'                 => __( 'Evento', 'sg-juridico' ),
+		'description'           => __( 'Gerenciamento de eventos do calendário', 'sg-juridico' ),
+		'labels'                => $labels,
+		'supports'              => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields' ),
+		'taxonomies'            => array( 'sg_evento_categoria' ),
+		'hierarchical'          => false,
+		'public'                => true,
+		'show_ui'               => true,
+		'show_in_menu'          => true,
+		'menu_position'         => 25,
+		'menu_icon'             => 'dashicons-calendar-alt',
+		'show_in_admin_bar'     => true,
+		'show_in_nav_menus'     => true,
+		'can_export'            => true,
+		'has_archive'           => true,
+		'rewrite'               => array(
+			'slug'       => 'eventos',
+			'with_front' => false,
+		),
+		'exclude_from_search'   => false,
+		'publicly_queryable'    => true,
+		'capability_type'       => 'post',
+		'show_in_rest'          => true,
+	);
+
+	register_post_type( 'sg_eventos', $args );
+}
+add_action( 'init', 'sg_register_eventos_post_type', 0 );
+
+/**
+ * Registrar Taxonomia: Categorias de Eventos
+ */
+function sg_register_evento_categoria_taxonomy() {
+	$labels = array(
+		'name'              => _x( 'Categorias de Eventos', 'taxonomy general name', 'sg-juridico' ),
+		'singular_name'     => _x( 'Categoria de Evento', 'taxonomy singular name', 'sg-juridico' ),
+		'search_items'      => __( 'Buscar Categorias', 'sg-juridico' ),
+		'all_items'         => __( 'Todas as Categorias', 'sg-juridico' ),
+		'parent_item'       => __( 'Categoria Pai', 'sg-juridico' ),
+		'parent_item_colon' => __( 'Categoria Pai:', 'sg-juridico' ),
+		'edit_item'         => __( 'Editar Categoria', 'sg-juridico' ),
+		'update_item'       => __( 'Atualizar Categoria', 'sg-juridico' ),
+		'add_new_item'      => __( 'Adicionar Nova Categoria', 'sg-juridico' ),
+		'new_item_name'     => __( 'Nome da Nova Categoria', 'sg-juridico' ),
+		'menu_name'         => __( 'Categorias', 'sg-juridico' ),
+	);
+
+	$args = array(
+		'labels'            => $labels,
+		'hierarchical'      => true,
+		'public'            => true,
+		'show_ui'           => true,
+		'show_admin_column' => true,
+		'show_in_nav_menus' => true,
+		'show_tagcloud'     => false,
+		'rewrite'           => array( 'slug' => 'categoria-evento' ),
+		'show_in_rest'      => true,
+	);
+
+	register_taxonomy( 'sg_evento_categoria', array( 'sg_eventos' ), $args );
+}
+add_action( 'init', 'sg_register_evento_categoria_taxonomy', 0 );
+
+/**
+ * Adicionar Meta Boxes para campos de eventos
+ */
+function sg_add_eventos_meta_boxes() {
+	// Adicionar meta box para sg_eventos
+	add_meta_box(
+		'sg_evento_detalhes',
+		__( 'Detalhes do Evento', 'sg-juridico' ),
+		'sg_evento_detalhes_callback',
+		'sg_eventos',
+		'normal',
+		'high'
+	);
+	
+	// Adicionar meta box para tribe_events
+	add_meta_box(
+		'sg_evento_detalhes',
+		__( 'Detalhes do Evento', 'sg-juridico' ),
+		'sg_evento_detalhes_callback',
+		'tribe_events',
+		'normal',
+		'high'
+	);
+	
+	// Adicionar meta box para etn
+	add_meta_box(
+		'sg_evento_detalhes',
+		__( 'Detalhes do Evento', 'sg-juridico' ),
+		'sg_evento_detalhes_callback',
+		'etn',
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'sg_add_eventos_meta_boxes' );
+
+/**
+ * Callback do Meta Box de Detalhes
+ */
+function sg_evento_detalhes_callback( $post ) {
+	wp_nonce_field( 'sg_evento_detalhes_nonce', 'sg_evento_detalhes_nonce' );
+	
+	$post_type = get_post_type( $post->ID );
+	
+	// Detectar meta keys baseado no tipo de post
+	if ( $post_type === 'sg_eventos' ) {
+		$meta_key_start = '_sg_evento_data_inicio';
+		$meta_key_end = '_sg_evento_data_fim';
+		$meta_key_location = '_sg_evento_local';
+		$meta_key_address = '_sg_evento_endereco';
+	} elseif ( $post_type === 'tribe_events' ) {
+		$meta_key_start = '_EventStartDate';
+		$meta_key_end = '_EventEndDate';
+		$meta_key_location = '_EventVenue';
+		$meta_key_address = '_sg_evento_endereco'; // Usar nosso próprio campo
+	} else {
+		// ETN
+		$meta_key_start = 'etn_start_date';
+		$meta_key_end = 'etn_end_date';
+		$meta_key_location = 'etn_location';
+		$meta_key_address = '_sg_evento_endereco'; // Usar nosso próprio campo
+	}
+	
+	$data_inicio = get_post_meta( $post->ID, $meta_key_start, true );
+	$data_fim = get_post_meta( $post->ID, $meta_key_end, true );
+	$local = get_post_meta( $post->ID, $meta_key_location, true );
+	$endereco = get_post_meta( $post->ID, $meta_key_address, true );
+	$link_externo = get_post_meta( $post->ID, '_sg_evento_link_externo', true );
+	
+	// Se não encontrou valores, tentar outras meta keys como fallback
+	if ( empty( $data_inicio ) ) {
+		// Tentar outras meta keys possíveis
+		$possible_keys = array( '_sg_evento_data_inicio', '_EventStartDate', 'etn_start_date' );
+		foreach ( $possible_keys as $key ) {
+			if ( $key !== $meta_key_start ) {
+				$value = get_post_meta( $post->ID, $key, true );
+				if ( ! empty( $value ) ) {
+					$data_inicio = $value;
+					break;
+				}
+			}
+		}
+	}
+	
+	if ( empty( $data_fim ) ) {
+		$possible_keys = array( '_sg_evento_data_fim', '_EventEndDate', 'etn_end_date' );
+		foreach ( $possible_keys as $key ) {
+			if ( $key !== $meta_key_end ) {
+				$value = get_post_meta( $post->ID, $key, true );
+				if ( ! empty( $value ) ) {
+					$data_fim = $value;
+					break;
+				}
+			}
+		}
+	}
+	
+	if ( empty( $local ) ) {
+		$possible_keys = array( '_sg_evento_local', '_EventVenue', 'etn_location' );
+		foreach ( $possible_keys as $key ) {
+			if ( $key !== $meta_key_location ) {
+				$value = get_post_meta( $post->ID, $key, true );
+				if ( ! empty( $value ) ) {
+					$local = $value;
+					break;
+				}
+			}
+		}
+	}
+	
+	// Para tribe_events, converter timestamp ou datetime para date
+	if ( $post_type === 'tribe_events' ) {
+		if ( ! empty( $data_inicio ) ) {
+			// Tribe Events geralmente usa formato datetime (YYYY-MM-DD HH:MM:SS)
+			if ( strpos( $data_inicio, ' ' ) !== false ) {
+				// Se for datetime string, extrair apenas a data
+				$data_inicio = date( 'Y-m-d', strtotime( $data_inicio ) );
+			} elseif ( is_numeric( $data_inicio ) ) {
+				// Se for timestamp numérico
+				$data_inicio = date( 'Y-m-d', $data_inicio );
+			} elseif ( strtotime( $data_inicio ) !== false ) {
+				// Se for string de data válida
+				$data_inicio = date( 'Y-m-d', strtotime( $data_inicio ) );
+			}
+		}
+		if ( ! empty( $data_fim ) ) {
+			if ( strpos( $data_fim, ' ' ) !== false ) {
+				// Se for datetime string, extrair apenas a data
+				$data_fim = date( 'Y-m-d', strtotime( $data_fim ) );
+			} elseif ( is_numeric( $data_fim ) ) {
+				// Se for timestamp numérico
+				$data_fim = date( 'Y-m-d', $data_fim );
+			} elseif ( strtotime( $data_fim ) !== false ) {
+				// Se for string de data válida
+				$data_fim = date( 'Y-m-d', strtotime( $data_fim ) );
+			}
+		}
+	}
+	
+	// Para ETN, garantir formato correto se necessário
+	if ( $post_type === 'etn' && ! empty( $data_inicio ) ) {
+		// Verificar se está em formato correto para input date (YYYY-MM-DD)
+		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $data_inicio ) ) {
+			// Tentar converter para formato YYYY-MM-DD
+			$timestamp = strtotime( $data_inicio );
+			if ( $timestamp !== false ) {
+				$data_inicio = date( 'Y-m-d', $timestamp );
+			}
+		}
+	}
+	if ( $post_type === 'etn' && ! empty( $data_fim ) ) {
+		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $data_fim ) ) {
+			$timestamp = strtotime( $data_fim );
+			if ( $timestamp !== false ) {
+				$data_fim = date( 'Y-m-d', $timestamp );
+			}
+		}
+	}
+	
+	// Extrair hora se houver timestamp
+	$hora_inicio = '';
+	$hora_fim = '';
+	// Carregar horários para todos os tipos de evento
+	$hora_inicio = get_post_meta( $post->ID, '_sg_evento_hora_inicio', true );
+	$hora_fim = get_post_meta( $post->ID, '_sg_evento_hora_fim', true );
+	
+	// Carregar datas de inscrição
+	$data_inscricao_inicio = get_post_meta( $post->ID, '_sg_evento_inscricao_inicio', true );
+	$data_inscricao_fim = get_post_meta( $post->ID, '_sg_evento_inscricao_fim', true );
+	
+	// Formatar datas de inscrição se necessário
+	if ( ! empty( $data_inscricao_inicio ) && ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $data_inscricao_inicio ) ) {
+		$timestamp = strtotime( $data_inscricao_inicio );
+		if ( $timestamp !== false ) {
+			$data_inscricao_inicio = date( 'Y-m-d', $timestamp );
+		}
+	}
+	if ( ! empty( $data_inscricao_fim ) && ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $data_inscricao_fim ) ) {
+		$timestamp = strtotime( $data_inscricao_fim );
+		if ( $timestamp !== false ) {
+			$data_inscricao_fim = date( 'Y-m-d', $timestamp );
+		}
+	}
+	
+	// Detectar categoria
+	$categoria_atual = '';
+	if ( $post_type === 'sg_eventos' ) {
+		$terms = get_the_terms( $post->ID, 'sg_evento_categoria' );
+		if ( $terms && ! is_wp_error( $terms ) ) {
+			$categoria_atual = $terms[0]->slug;
+		}
+	} else {
+		// Para tribe_events e etn, buscar categoria salva em meta
+		$categoria_atual = get_post_meta( $post->ID, '_sg_evento_categoria', true );
+		// Se não encontrar no meta, tentar detectar pelo título
+		if ( empty( $categoria_atual ) ) {
+			$categoria_atual = sg_detect_event_category( get_the_title( $post->ID ) );
+		}
+	}
+
+	?>
+	<table class="form-table">
+		<?php if ( $post_type !== 'sg_eventos' ) : ?>
+		<tr>
+			<th><label for="sg_evento_categoria"><?php _e( 'Categoria', 'sg-juridico' ); ?></label></th>
+			<td>
+				<select id="sg_evento_categoria" name="sg_evento_categoria" class="regular-text">
+					<option value=""><?php _e( 'Selecione uma categoria', 'sg-juridico' ); ?></option>
+					<?php
+					$categorias = array(
+						'ministerio-publico' => 'Ministério Público',
+						'magistratura' => 'Magistratura',
+						'delegado' => 'Delegado',
+						'enam' => 'ENAM',
+						'procuradoria' => 'Procuradoria',
+					);
+					foreach ( $categorias as $slug => $nome ) :
+					?>
+						<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $categoria_atual, $slug ); ?>>
+							<?php echo esc_html( $nome ); ?>
+						</option>
+					<?php endforeach; ?>
+				</select>
+				<p class="description"><?php _e( 'Categoria do evento', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+		<?php endif; ?>
+		<tr>
+			<th><label for="sg_evento_data_inicio"><?php _e( 'Data da Realização', 'sg-juridico' ); ?></label></th>
+			<td>
+				<input type="date" id="sg_evento_data_inicio" name="sg_evento_data_inicio" value="<?php echo esc_attr( $data_inicio ); ?>" class="regular-text" required />
+				<p class="description"><?php _e( 'Data em que o candidato irá prestar a prova', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="sg_evento_hora_inicio"><?php _e( 'Horário Início', 'sg-juridico' ); ?></label></th>
+			<td>
+				<input type="time" id="sg_evento_hora_inicio" name="sg_evento_hora_inicio" value="<?php echo esc_attr( $hora_inicio ); ?>" class="regular-text" />
+				<p class="description"><?php _e( 'Horário de início do evento (opcional)', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="sg_evento_hora_fim"><?php _e( 'Horário Término', 'sg-juridico' ); ?></label></th>
+			<td>
+				<input type="time" id="sg_evento_hora_fim" name="sg_evento_hora_fim" value="<?php echo esc_attr( $hora_fim ); ?>" class="regular-text" />
+				<p class="description"><?php _e( 'Horário de término do evento (opcional)', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="sg_evento_inscricao_inicio"><?php _e( 'Data de Início das Inscrições', 'sg-juridico' ); ?></label></th>
+			<td>
+				<input type="date" id="sg_evento_inscricao_inicio" name="sg_evento_inscricao_inicio" value="<?php echo esc_attr( $data_inscricao_inicio ); ?>" class="regular-text" />
+				<p class="description"><?php _e( 'Data de início do período de inscrições (opcional)', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="sg_evento_inscricao_fim"><?php _e( 'Data de Término das Inscrições', 'sg-juridico' ); ?></label></th>
+			<td>
+				<input type="date" id="sg_evento_inscricao_fim" name="sg_evento_inscricao_fim" value="<?php echo esc_attr( $data_inscricao_fim ); ?>" class="regular-text" />
+				<p class="description"><?php _e( 'Data de término do período de inscrições (opcional)', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="sg_evento_local"><?php _e( 'Local', 'sg-juridico' ); ?></label></th>
+			<td>
+				<input type="text" id="sg_evento_local" name="sg_evento_local" value="<?php echo esc_attr( $local ); ?>" class="regular-text" />
+				<p class="description"><?php _e( 'Nome do local do evento', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="sg_evento_endereco"><?php _e( 'Endereço', 'sg-juridico' ); ?></label></th>
+			<td>
+				<textarea id="sg_evento_endereco" name="sg_evento_endereco" rows="3" class="large-text"><?php echo esc_textarea( $endereco ); ?></textarea>
+				<p class="description"><?php _e( 'Endereço completo do evento', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="sg_evento_link_externo"><?php _e( 'Link Externo', 'sg-juridico' ); ?></label></th>
+			<td>
+				<input type="url" id="sg_evento_link_externo" name="sg_evento_link_externo" value="<?php echo esc_url( $link_externo ); ?>" class="regular-text" />
+				<p class="description"><?php _e( 'Link externo relacionado ao evento (opcional)', 'sg-juridico' ); ?></p>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
+
+/**
+ * Salvar Meta Boxes
+ */
+function sg_save_evento_meta_boxes( $post_id ) {
+	// Verificar nonce
+	if ( ! isset( $_POST['sg_evento_detalhes_nonce'] ) || ! wp_verify_nonce( $_POST['sg_evento_detalhes_nonce'], 'sg_evento_detalhes_nonce' ) ) {
+		return;
+	}
+
+	// Verificar autosave
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Verificar permissões
+	$post_type = isset( $_POST['post_type'] ) ? $_POST['post_type'] : get_post_type( $post_id );
+	if ( ! in_array( $post_type, array( 'sg_eventos', 'etn', 'tribe_events' ) ) ) {
+		return;
+	}
+	
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	
+	// Detectar meta keys baseado no tipo de post
+	if ( $post_type === 'sg_eventos' ) {
+		$meta_key_start = '_sg_evento_data_inicio';
+		$meta_key_end = '_sg_evento_data_fim';
+		$meta_key_location = '_sg_evento_local';
+	} elseif ( $post_type === 'tribe_events' ) {
+		$meta_key_start = '_EventStartDate';
+		$meta_key_end = '_EventEndDate';
+		$meta_key_location = '_EventVenue';
+	} else {
+		// ETN
+		$meta_key_start = 'etn_start_date';
+		$meta_key_end = 'etn_end_date';
+		$meta_key_location = 'etn_location';
+	}
+
+	// Salvar campos de data
+	if ( isset( $_POST['sg_evento_data_inicio'] ) ) {
+		$data_inicio = sanitize_text_field( $_POST['sg_evento_data_inicio'] );
+		if ( $post_type === 'tribe_events' && ! empty( $data_inicio ) ) {
+			// Converter para timestamp para tribe_events
+			$timestamp = strtotime( $data_inicio );
+			update_post_meta( $post_id, $meta_key_start, $timestamp );
+		} else {
+			update_post_meta( $post_id, $meta_key_start, $data_inicio );
+		}
+	}
+	
+	// Salvar campos de hora para todos os tipos de evento
+	if ( isset( $_POST['sg_evento_hora_inicio'] ) ) {
+		update_post_meta( $post_id, '_sg_evento_hora_inicio', sanitize_text_field( $_POST['sg_evento_hora_inicio'] ) );
+	}
+	if ( isset( $_POST['sg_evento_hora_fim'] ) ) {
+		update_post_meta( $post_id, '_sg_evento_hora_fim', sanitize_text_field( $_POST['sg_evento_hora_fim'] ) );
+	}
+	
+	// Salvar datas de inscrição
+	if ( isset( $_POST['sg_evento_inscricao_inicio'] ) ) {
+		update_post_meta( $post_id, '_sg_evento_inscricao_inicio', sanitize_text_field( $_POST['sg_evento_inscricao_inicio'] ) );
+	}
+	if ( isset( $_POST['sg_evento_inscricao_fim'] ) ) {
+		update_post_meta( $post_id, '_sg_evento_inscricao_fim', sanitize_text_field( $_POST['sg_evento_inscricao_fim'] ) );
+	}
+
+	// Salvar local
+	if ( isset( $_POST['sg_evento_local'] ) ) {
+		update_post_meta( $post_id, $meta_key_location, sanitize_text_field( $_POST['sg_evento_local'] ) );
+	}
+
+	// Salvar endereço (sempre usar nosso próprio campo)
+	if ( isset( $_POST['sg_evento_endereco'] ) ) {
+		update_post_meta( $post_id, '_sg_evento_endereco', sanitize_textarea_field( $_POST['sg_evento_endereco'] ) );
+	}
+
+	// Salvar link externo
+	if ( isset( $_POST['sg_evento_link_externo'] ) ) {
+		update_post_meta( $post_id, '_sg_evento_link_externo', esc_url_raw( $_POST['sg_evento_link_externo'] ) );
+	}
+	
+	// Salvar categoria (para tribe_events e etn)
+	if ( $post_type !== 'sg_eventos' && isset( $_POST['sg_evento_categoria'] ) ) {
+		$categoria = sanitize_text_field( $_POST['sg_evento_categoria'] );
+		// Salvar como meta para uso futuro
+		update_post_meta( $post_id, '_sg_evento_categoria', $categoria );
+	}
+
+	// Limpar cache de eventos
+	sg_clear_sg_eventos_cache();
+}
+add_action( 'save_post', 'sg_save_evento_meta_boxes' );
+
+/**
+ * Limpar cache de eventos SG
+ */
+function sg_clear_sg_eventos_cache() {
+	wp_cache_delete( 'sg_all_calendar_events', 'sg_events' );
+	wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( 10, null ) ) ), 'sg_events' );
+}
+
+/**
+ * Adicionar colunas customizadas na listagem de eventos
+ */
+function sg_eventos_admin_columns( $columns ) {
+	$new_columns = array();
+	$new_columns['cb'] = $columns['cb'];
+	$new_columns['title'] = $columns['title'];
+	$new_columns['sg_evento_data'] = __( 'Data do Evento', 'sg-juridico' );
+	$new_columns['sg_evento_categoria'] = __( 'Categoria', 'sg-juridico' );
+	$new_columns['sg_evento_local'] = __( 'Local', 'sg-juridico' );
+	$new_columns['date'] = $columns['date'];
+	return $new_columns;
+}
+add_filter( 'manage_sg_eventos_posts_columns', 'sg_eventos_admin_columns' );
+
+/**
+ * Preencher colunas customizadas
+ */
+function sg_eventos_admin_column_content( $column, $post_id ) {
+	switch ( $column ) {
+		case 'sg_evento_data':
+			$data_inicio = get_post_meta( $post_id, '_sg_evento_data_inicio', true );
+			$hora_inicio = get_post_meta( $post_id, '_sg_evento_hora_inicio', true );
+			if ( $data_inicio ) {
+				$data_formatada = date_i18n( 'd/m/Y', strtotime( $data_inicio ) );
+				if ( $hora_inicio ) {
+					$data_formatada .= ' ' . $hora_inicio;
+				}
+				echo esc_html( $data_formatada );
+			} else {
+				echo '<span style="color: #d63638;">—</span>';
+			}
+			break;
+
+		case 'sg_evento_categoria':
+			$terms = get_the_terms( $post_id, 'sg_evento_categoria' );
+			if ( $terms && ! is_wp_error( $terms ) ) {
+				$term_names = array();
+				foreach ( $terms as $term ) {
+					$term_names[] = $term->name;
+				}
+				echo esc_html( implode( ', ', $term_names ) );
+			} else {
+				echo '<span style="color: #999;">—</span>';
+			}
+			break;
+
+		case 'sg_evento_local':
+			$local = get_post_meta( $post_id, '_sg_evento_local', true );
+			if ( $local ) {
+				echo esc_html( $local );
+			} else {
+				echo '<span style="color: #999;">—</span>';
+			}
+			break;
+	}
+}
+add_action( 'manage_sg_eventos_posts_custom_column', 'sg_eventos_admin_column_content', 10, 2 );
+
+/**
+ * Tornar colunas ordenáveis
+ */
+function sg_eventos_sortable_columns( $columns ) {
+	$columns['sg_evento_data'] = 'sg_evento_data';
+	return $columns;
+}
+add_filter( 'manage_edit-sg_eventos_sortable_columns', 'sg_eventos_sortable_columns' );
+
+/**
+ * Ordenar por data do evento
+ */
+function sg_eventos_orderby( $query ) {
+	if ( ! is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+
+	if ( 'sg_evento_data' === $query->get( 'orderby' ) ) {
+		$query->set( 'meta_key', '_sg_evento_data_inicio' );
+		$query->set( 'orderby', 'meta_value' );
+	}
+}
+add_action( 'pre_get_posts', 'sg_eventos_orderby' );
+
+/**
+ * Configurar archive para eventos SG
+ */
+function sg_setup_sg_eventos_archive() {
+	global $wp_post_types;
+	if ( isset( $wp_post_types['sg_eventos'] ) ) {
+		$wp_post_types['sg_eventos']->has_archive = true;
+	}
+}
+add_action( 'init', 'sg_setup_sg_eventos_archive', 20 );
+
+/**
+ * Ajustar query para posts sg_eventos
+ */
+function sg_pre_get_posts_sg_eventos( $query ) {
+	if ( ! is_admin() && $query->is_main_query() ) {
+		if ( $query->is_post_type_archive( 'sg_eventos' ) ) {
+			$query->set( 'post_type', 'sg_eventos' );
+			$query->set( 'post_status', 'publish' );
+			$query->set( 'posts_per_page', 20 );
+			$query->set( 'orderby', 'meta_value' );
+			$query->set( 'meta_key', '_sg_evento_data_inicio' );
+			$query->set( 'order', 'ASC' );
+			$query->set( 'meta_type', 'DATE' );
+		}
+	}
+}
+add_action( 'pre_get_posts', 'sg_pre_get_posts_sg_eventos' );
+
+/**
  * Configurar archive para eventos ETN
  */
 function sg_setup_etn_archive() {
@@ -111,8 +719,258 @@ function sg_pre_get_posts_etn( $query ) {
 add_action( 'pre_get_posts', 'sg_pre_get_posts_etn' );
 
 /**
- * Flush rewrite rules quando ativar tema (necessário para URLs funcionarem)
+ * Incluir eventos na busca do WordPress
  */
+function sg_include_events_in_search( $query ) {
+	if ( ! is_admin() && $query->is_main_query() && $query->is_search() ) {
+		// Obter post types de eventos disponíveis
+		$event_post_types = array( 'post', 'page' ); // Incluir posts e páginas padrão
+		
+		// Verificar quais tipos de eventos existem
+		if ( post_type_exists( 'sg_eventos' ) ) {
+			$event_post_types[] = 'sg_eventos';
+		}
+		if ( post_type_exists( 'etn' ) ) {
+			$event_post_types[] = 'etn';
+		}
+		if ( post_type_exists( 'tribe_events' ) ) {
+			$event_post_types[] = 'tribe_events';
+		}
+		
+		// Se nenhum post type de evento está registrado, verificar no banco
+		if ( ! in_array( 'sg_eventos', $event_post_types ) || ! in_array( 'etn', $event_post_types ) || ! in_array( 'tribe_events', $event_post_types ) ) {
+			global $wpdb;
+			$post_types_to_check = array( 'sg_eventos', 'etn', 'tribe_events' );
+			foreach ( $post_types_to_check as $pt ) {
+				if ( ! in_array( $pt, $event_post_types ) ) {
+					$count = $wpdb->get_var( $wpdb->prepare(
+						"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+						$pt
+					) );
+					if ( $count > 0 ) {
+						$event_post_types[] = $pt;
+					}
+				}
+			}
+		}
+		
+		$query->set( 'post_type', $event_post_types );
+	}
+}
+add_action( 'pre_get_posts', 'sg_include_events_in_search' );
+
+/**
+ * Buscar produtos relacionados para a busca
+ */
+function sg_get_related_products_for_search( $search_query ) {
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return array();
+	}
+	
+	// Limpar query de busca
+	$search_terms = sanitize_text_field( $search_query );
+	if ( empty( $search_terms ) ) {
+		return array();
+	}
+	
+	// Buscar produtos que contenham os termos de busca
+	$args = array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 4, // Limitar a 4 produtos
+		's'              => $search_terms,
+		'orderby'        => 'relevance',
+		'order'          => 'DESC',
+	);
+	
+	$products_query = new WP_Query( $args );
+	$product_ids = array();
+	
+	if ( $products_query->have_posts() ) {
+		while ( $products_query->have_posts() ) {
+			$products_query->the_post();
+			$product_ids[] = get_the_ID();
+		}
+		wp_reset_postdata();
+	}
+	
+	// Se não encontrou produtos relacionados, buscar produtos em destaque
+	if ( empty( $product_ids ) ) {
+		$featured_args = array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 4,
+			'tax_query'      => array(
+				array(
+					'taxonomy' => 'product_visibility',
+					'field'    => 'name',
+					'terms'    => 'featured',
+				),
+			),
+		);
+		
+		$featured_query = new WP_Query( $featured_args );
+		if ( $featured_query->have_posts() ) {
+			while ( $featured_query->have_posts() ) {
+				$featured_query->the_post();
+				$product_ids[] = get_the_ID();
+			}
+			wp_reset_postdata();
+		}
+	}
+	
+	return $product_ids;
+}
+
+/**
+ * Obter permalink confiável para eventos (funciona mesmo com post types não registrados)
+ */
+function sg_get_event_permalink( $post_id ) {
+	$post = get_post( $post_id );
+	if ( ! $post || $post->post_status !== 'publish' ) {
+		return '';
+	}
+	
+	$post_type = $post->post_type;
+	
+	// Tentar usar get_permalink primeiro
+	$permalink = get_permalink( $post_id );
+	
+	// Se get_permalink retornou válido e não é false, usar
+	if ( ! empty( $permalink ) && $permalink !== false && filter_var( $permalink, FILTER_VALIDATE_URL ) ) {
+		// Verificar se a URL não contém apenas ?p=ID sem outros parâmetros úteis
+		// Se o post type está registrado e tem rewrite, usar o permalink
+		if ( post_type_exists( $post_type ) ) {
+			return $permalink;
+		}
+		// Se não está registrado mas get_permalink retornou algo válido, usar
+		if ( strpos( $permalink, '?p=' ) === false ) {
+			return $permalink;
+		}
+	}
+	
+	// Se não funcionou ou é um post type não registrado, usar ?p=ID
+	// Isso funciona porque temos hooks que garantem que o WordPress reconheça isso
+	return home_url( '/?p=' . $post_id );
+}
+
+/**
+ * Endpoint AJAX para busca em tempo real
+ */
+function sg_ajax_search_preview() {
+	check_ajax_referer( 'sg_search_preview', 'nonce' );
+	
+	$search_term = isset( $_POST['s'] ) ? sanitize_text_field( $_POST['s'] ) : '';
+	
+	if ( empty( $search_term ) || strlen( $search_term ) < 2 ) {
+		wp_send_json_error( array( 'message' => 'Digite pelo menos 2 caracteres' ) );
+		return;
+	}
+	
+	// Buscar eventos
+	$event_post_types = array();
+	global $wpdb;
+	
+	$post_types_to_check = array( 'sg_eventos', 'etn', 'tribe_events' );
+	foreach ( $post_types_to_check as $pt ) {
+		if ( post_type_exists( $pt ) ) {
+			$event_post_types[] = $pt;
+		} else {
+			$count = $wpdb->get_var( $wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+				$pt
+			) );
+			if ( $count > 0 ) {
+				$event_post_types[] = $pt;
+			}
+		}
+	}
+	
+	$results = array();
+	
+	// Buscar eventos
+	if ( ! empty( $event_post_types ) ) {
+		$events_query = new WP_Query( array(
+			'post_type'      => $event_post_types,
+			'post_status'    => 'publish',
+			'posts_per_page' => 5,
+			's'              => $search_term,
+			'orderby'        => 'relevance',
+			'order'          => 'DESC',
+		) );
+		
+		if ( $events_query->have_posts() ) {
+			while ( $events_query->have_posts() ) {
+				$events_query->the_post();
+				$post_id = get_the_ID();
+				$post_type = get_post_type();
+				
+				// Detectar meta keys
+				if ( $post_type === 'sg_eventos' ) {
+					$meta_key_start = '_sg_evento_data_inicio';
+				} elseif ( $post_type === 'tribe_events' ) {
+					$meta_key_start = '_EventStartDate';
+				} else {
+					$meta_key_start = 'etn_start_date';
+				}
+				
+				$start_date = get_post_meta( $post_id, $meta_key_start, true );
+				if ( $post_type === 'tribe_events' && ! empty( $start_date ) && strpos( $start_date, ' ' ) !== false ) {
+					$start_date = date( 'd/m/Y', strtotime( $start_date ) );
+				} elseif ( ! empty( $start_date ) && ! preg_match( '/^\d{2}\/\d{2}\/\d{4}$/', $start_date ) ) {
+					$start_date = date_i18n( 'd/m/Y', strtotime( $start_date ) );
+				}
+				
+				// Usar função auxiliar para obter permalink confiável
+				$event_url = sg_get_event_permalink( $post_id );
+				
+				$results[] = array(
+					'type'       => 'event',
+					'id'         => $post_id,
+					'title'      => get_the_title(),
+					'url'        => $event_url,
+					'excerpt'    => wp_trim_words( get_the_excerpt() ?: get_the_content(), 15 ),
+					'date'       => $start_date ?: '',
+					'thumbnail'  => get_the_post_thumbnail_url( $post_id, 'thumbnail' ),
+				);
+			}
+			wp_reset_postdata();
+		}
+	}
+	
+	// Buscar produtos
+	if ( class_exists( 'WooCommerce' ) ) {
+		$products_query = new WP_Query( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 3,
+			's'              => $search_term,
+			'orderby'        => 'relevance',
+			'order'          => 'DESC',
+		) );
+		
+		if ( $products_query->have_posts() ) {
+			while ( $products_query->have_posts() ) {
+				$products_query->the_post();
+				$product = wc_get_product( get_the_ID() );
+				
+				$results[] = array(
+					'type'       => 'product',
+					'id'         => get_the_ID(),
+					'title'      => get_the_title(),
+					'url'        => get_permalink(),
+					'price'      => $product->get_price_html(),
+					'thumbnail'  => get_the_post_thumbnail_url( get_the_ID(), 'thumbnail' ),
+				);
+			}
+			wp_reset_postdata();
+		}
+	}
+	
+	wp_send_json_success( array( 'results' => $results ) );
+}
+add_action( 'wp_ajax_sg_search_preview', 'sg_ajax_search_preview' );
+add_action( 'wp_ajax_nopriv_sg_search_preview', 'sg_ajax_search_preview' );
 function sg_flush_rewrite_rules() {
 	if ( ! get_option( 'sg_flushed_rewrite_rules' ) ) {
 		flush_rewrite_rules();
@@ -135,7 +993,197 @@ function sg_admin_flush_rewrite_rules() {
 add_action( 'admin_init', 'sg_admin_flush_rewrite_rules' );
 
 /**
+ * Garantir que posts de eventos sejam carregados corretamente via ?p=ID ou ?post_type=slug
+ */
+function sg_force_load_event_posts( $query ) {
+	// Apenas na query principal do frontend
+	if ( is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+	
+	// Verificar se está usando ?p=ID
+	if ( isset( $_GET['p'] ) ) {
+		$post_id = intval( $_GET['p'] );
+		if ( $post_id ) {
+			$post_type = get_post_type( $post_id );
+			
+			// Se for um tipo de evento, garantir que seja carregado
+			if ( in_array( $post_type, array( 'etn', 'tribe_events', 'sg_eventos' ) ) ) {
+				$post = get_post( $post_id );
+				
+				// Se o post existe e está publicado, forçar carregamento
+				if ( $post && $post->post_status === 'publish' ) {
+					$query->set( 'p', $post_id );
+					$query->is_singular = true;
+					$query->is_single = true;
+					$query->is_page = false;
+					$query->is_home = false;
+					$query->is_archive = false;
+					
+					// Forçar o post type para que WordPress reconheça
+					if ( ! post_type_exists( $post_type ) ) {
+						// Temporariamente registrar o post type se necessário
+						if ( ! isset( $GLOBALS['wp_post_types'][ $post_type ] ) ) {
+							register_post_type( $post_type, array(
+								'public' => true,
+								'publicly_queryable' => true,
+								'show_ui' => false,
+								'show_in_menu' => false,
+								'query_var' => true,
+								'rewrite' => false,
+								'capability_type' => 'post',
+								'has_archive' => false,
+								'hierarchical' => false,
+								'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+							) );
+						}
+					}
+					
+					$query->set( 'post_type', $post_type );
+				}
+			}
+		}
+	}
+	
+	// Verificar se está usando ?post_type=slug (ex: ?tribe_events=slug)
+	$event_post_types = array( 'etn', 'tribe_events', 'sg_eventos' );
+	foreach ( $event_post_types as $pt ) {
+		$slug = get_query_var( $pt );
+		if ( empty( $slug ) && isset( $_GET[ $pt ] ) ) {
+			$slug = sanitize_text_field( $_GET[ $pt ] );
+		}
+		
+		if ( ! empty( $slug ) ) {
+			// Buscar post pelo slug
+			$post_obj = get_page_by_path( $slug, OBJECT, $pt );
+			
+			// Se não encontrou e o post type não está registrado, buscar diretamente no banco
+			if ( ! $post_obj && ! post_type_exists( $pt ) ) {
+				global $wpdb;
+				$post_obj = $wpdb->get_row( $wpdb->prepare(
+					"SELECT * FROM {$wpdb->posts} 
+					WHERE post_name = %s 
+					AND post_type = %s 
+					AND post_status = 'publish' 
+					LIMIT 1",
+					$slug,
+					$pt
+				), OBJECT );
+				
+				if ( $post_obj ) {
+					$post_obj = get_post( $post_obj->ID );
+				}
+			}
+			
+			if ( $post_obj && $post_obj->post_status === 'publish' ) {
+				$query->set( 'p', $post_obj->ID );
+				$query->set( 'post_type', $pt );
+				$query->is_singular = true;
+				$query->is_single = true;
+				$query->is_page = false;
+				$query->is_home = false;
+				$query->is_archive = false;
+				$query->is_front_page = false;
+				
+				// Forçar o post type para que WordPress reconheça
+				if ( ! post_type_exists( $pt ) ) {
+					if ( ! isset( $GLOBALS['wp_post_types'][ $pt ] ) ) {
+						register_post_type( $pt, array(
+							'public' => true,
+							'publicly_queryable' => true,
+							'show_ui' => false,
+							'show_in_menu' => false,
+							'query_var' => true,
+							'rewrite' => false,
+							'capability_type' => 'post',
+							'has_archive' => false,
+							'hierarchical' => false,
+							'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+						) );
+					}
+				}
+				
+				return; // Importante: retornar aqui para não continuar processando
+			}
+		}
+	}
+}
+add_action( 'pre_get_posts', 'sg_force_load_event_posts', 1 );
+
+/**
+ * Evitar 404 para eventos acessados via ?p=ID ou ?post_type=slug
+ */
+function sg_prevent_404_for_events() {
+	if ( is_admin() ) {
+		return;
+	}
+	
+	global $wp_query;
+	
+	// Verificar se está usando ?p=ID
+	if ( isset( $_GET['p'] ) ) {
+		$post_id = intval( $_GET['p'] );
+		if ( $post_id ) {
+			$post_type = get_post_type( $post_id );
+			
+			if ( in_array( $post_type, array( 'etn', 'tribe_events', 'sg_eventos' ) ) ) {
+				$post = get_post( $post_id );
+				
+				if ( $post && $post->post_status === 'publish' ) {
+					// Forçar o WordPress a reconhecer como singular
+					$wp_query->is_404 = false;
+					$wp_query->is_singular = true;
+					$wp_query->is_single = true;
+					$wp_query->is_home = false;
+					$wp_query->is_archive = false;
+					
+					// Garantir que o post está carregado
+					if ( ! $wp_query->post || $wp_query->post->ID !== $post_id ) {
+						$wp_query->post = $post;
+						$wp_query->posts = array( $post );
+						$wp_query->post_count = 1;
+						$wp_query->found_posts = 1;
+					}
+					
+					// Limpar qualquer flag de erro
+					status_header( 200 );
+					return;
+				}
+			}
+		}
+	}
+	
+	// Verificar se está usando ?post_type=slug (ex: ?tribe_events=slug)
+	$event_post_types = array( 'etn', 'tribe_events', 'sg_eventos' );
+	foreach ( $event_post_types as $pt ) {
+		$slug = get_query_var( $pt );
+		if ( ! empty( $slug ) ) {
+			$post_obj = get_page_by_path( $slug, OBJECT, $pt );
+			if ( $post_obj && $post_obj->post_status === 'publish' ) {
+				$wp_query->is_404 = false;
+				$wp_query->is_singular = true;
+				$wp_query->is_single = true;
+				$wp_query->is_home = false;
+				$wp_query->is_archive = false;
+				
+				if ( ! $wp_query->post || $wp_query->post->ID !== $post_obj->ID ) {
+					$wp_query->post = $post_obj;
+					$wp_query->posts = array( $post_obj );
+					$wp_query->post_count = 1;
+					$wp_query->found_posts = 1;
+				}
+				
+				status_header( 200 );
+				return;
+			}
+		}
+	}
+}
+add_action( 'template_redirect', 'sg_prevent_404_for_events', 1 );
+
+/**
  * Forçar uso de templates single-etn.php e archive-etn.php
+ * PRIORIDADE ALTA para garantir que seja executado antes de outros filtros
  */
 function sg_template_include_etn( $template ) {
 	// Verificar via query vars ou post global
@@ -143,6 +1191,70 @@ function sg_template_include_etn( $template ) {
 	
 	// Garantir que $request_uri esteja sempre definido para verificações posteriores
 	$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	
+	// PRIORIDADE 1: Verificar via query vars de post types (ex: ?tribe_events=slug)
+	$event_post_types = array( 'etn', 'tribe_events', 'sg_eventos' );
+	foreach ( $event_post_types as $pt ) {
+		// Verificar tanto via get_query_var quanto diretamente via $_GET
+		$slug = get_query_var( $pt );
+		if ( empty( $slug ) && isset( $_GET[ $pt ] ) ) {
+			$slug = sanitize_text_field( $_GET[ $pt ] );
+		}
+		
+		if ( ! empty( $slug ) ) {
+			// Buscar post pelo slug - tentar múltiplas formas
+			$post_obj = get_page_by_path( $slug, OBJECT, $pt );
+			
+			// Se não encontrou e o post type não está registrado, buscar diretamente no banco
+			if ( ! $post_obj && ! post_type_exists( $pt ) ) {
+				global $wpdb;
+				$post_obj = $wpdb->get_row( $wpdb->prepare(
+					"SELECT * FROM {$wpdb->posts} 
+					WHERE post_name = %s 
+					AND post_type = %s 
+					AND post_status = 'publish' 
+					LIMIT 1",
+					$slug,
+					$pt
+				), OBJECT );
+				
+				if ( $post_obj ) {
+					$post_obj = get_post( $post_obj->ID );
+				}
+			}
+			
+			if ( $post_obj && $post_obj->post_status === 'publish' ) {
+				$post = $post_obj;
+				
+				// CRÍTICO: Forçar o WordPress a reconhecer como singular ANTES de escolher template
+				$wp_query->post = $post;
+				$wp_query->posts = array( $post );
+				$wp_query->post_count = 1;
+				$wp_query->found_posts = 1;
+				$wp_query->is_singular = true;
+				$wp_query->is_single = true;
+				$wp_query->is_page = false;
+				$wp_query->is_home = false;
+				$wp_query->is_archive = false;
+				$wp_query->is_404 = false;
+				$wp_query->is_search = false;
+				
+				// Forçar query vars
+				$wp_query->set( 'p', $post->ID );
+				$wp_query->set( 'post_type', $pt );
+				$wp_query->set( 'name', $post->post_name );
+				
+				// Garantir que o post global está correto
+				setup_postdata( $post );
+				
+				// Usar o template imediatamente
+				$single_etn = get_template_directory() . '/single-etn.php';
+				if ( file_exists( $single_etn ) ) {
+					return $single_etn;
+				}
+			}
+		}
+	}
 	
 	// Verificar se é um post do tipo etn
 	$post_type = get_query_var( 'post_type' );
@@ -160,9 +1272,20 @@ function sg_template_include_etn( $template ) {
 		$post_id = intval( $_GET['p'] );
 		if ( $post_id ) {
 			$detected_type = get_post_type( $post_id );
-			if ( $detected_type === 'etn' ) {
-				$post_type = 'etn';
+			if ( in_array( $detected_type, array( 'etn', 'tribe_events', 'sg_eventos' ) ) ) {
+				$post_type = $detected_type;
 				$is_etn_singular = true;
+				
+				// Garantir que o post global está correto
+				if ( ! $post || $post->ID !== $post_id ) {
+					$post = get_post( $post_id );
+					$wp_query->post = $post;
+					$wp_query->posts = array( $post );
+					$wp_query->post_count = 1;
+					$wp_query->is_singular = true;
+					$wp_query->is_single = true;
+					$wp_query->is_404 = false;
+				}
 			}
 		}
 	}
@@ -170,16 +1293,54 @@ function sg_template_include_etn( $template ) {
 	// Verificar no post global após query
 	if ( empty( $post_type ) && $post && isset( $post->post_type ) ) {
 		$post_type = $post->post_type;
-		if ( $post_type === 'etn' ) {
+		if ( in_array( $post_type, array( 'etn', 'tribe_events', 'sg_eventos' ) ) ) {
 			$is_etn_singular = true;
 		}
 	}
 	
-	// Verificar se é singular ETN
-	if ( is_singular( 'etn' ) || $is_etn_singular ) {
+	// Verificar se é singular de qualquer tipo de evento
+	if ( is_singular( array( 'etn', 'tribe_events', 'sg_eventos' ) ) || $is_etn_singular ) {
+		// Tentar usar single-etn.php para todos os tipos de eventos
 		$single_etn = get_template_directory() . '/single-etn.php';
 		if ( file_exists( $single_etn ) ) {
 			return $single_etn;
+		}
+	}
+	
+	// Verificar se há um post carregado que é um evento, mesmo que WordPress não reconheça como singular
+	if ( $post && isset( $post->post_type ) && in_array( $post->post_type, array( 'etn', 'tribe_events', 'sg_eventos' ) ) ) {
+		// Garantir que não é 404
+		if ( ! $wp_query->is_404 ) {
+			$single_etn = get_template_directory() . '/single-etn.php';
+			if ( file_exists( $single_etn ) ) {
+				return $single_etn;
+			}
+		}
+	}
+	
+	// Última tentativa: verificar se estamos em uma URL que deveria ser um evento
+	if ( isset( $_GET['p'] ) ) {
+		$post_id = intval( $_GET['p'] );
+		if ( $post_id ) {
+			$detected_type = get_post_type( $post_id );
+			if ( in_array( $detected_type, array( 'etn', 'tribe_events', 'sg_eventos' ) ) ) {
+				$single_etn = get_template_directory() . '/single-etn.php';
+				if ( file_exists( $single_etn ) ) {
+					return $single_etn;
+				}
+			}
+		}
+	}
+	
+	// Verificar query vars de post types
+	$event_post_types = array( 'etn', 'tribe_events', 'sg_eventos' );
+	foreach ( $event_post_types as $pt ) {
+		$slug = get_query_var( $pt );
+		if ( ! empty( $slug ) ) {
+			$single_etn = get_template_directory() . '/single-etn.php';
+			if ( file_exists( $single_etn ) ) {
+				return $single_etn;
+			}
 		}
 	}
 	
@@ -197,7 +1358,7 @@ function sg_template_include_etn( $template ) {
 	
 	return $template;
 }
-add_filter( 'template_include', 'sg_template_include_etn', 99 );
+add_filter( 'template_include', 'sg_template_include_etn', 1 );
 
 /**
  * Set content width
@@ -242,7 +1403,12 @@ function sg_scripts() {
 	wp_enqueue_script( 'sg-navigation', get_template_directory_uri() . '/js/navigation.js', array(), SG_VERSION, true );
 	wp_enqueue_script( 'sg-calendario', get_template_directory_uri() . '/js/calendario.js', array(), SG_VERSION, true );
 	
-	// Carregar script de expansão de eventos apenas na página de eventos
+	// Script de busca em tempo real
+	wp_enqueue_script( 'sg-search-preview', get_template_directory_uri() . '/js/search-preview.js', array(), SG_VERSION, true );
+	wp_localize_script( 'sg-search-preview', 'sgSearchPreview', array(
+		'ajaxurl' => admin_url( 'admin-ajax.php' ),
+		'nonce'   => wp_create_nonce( 'sg_search_preview' ),
+	) );
 	$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
 	if ( is_post_type_archive( 'etn' ) || 
 		 ( is_archive() && get_query_var( 'post_type' ) === 'etn' ) ||
@@ -1590,6 +2756,53 @@ function sg_get_concurso_events( $limit = 10, $categoria = null ) {
 	$today = current_time( 'Y-m-d' );
 	$events = array();
 	
+	// PRIMEIRO: Buscar eventos próprios (sg_eventos) - PRIORIDADE
+	$sg_eventos_query = $wpdb->get_results( $wpdb->prepare( "
+		SELECT p.ID, p.post_title, p.post_name,
+		       pm1.meta_value as start_date,
+		       pm2.meta_value as end_date
+		FROM {$wpdb->posts} p
+		LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = '_sg_evento_data_inicio'
+		LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = '_sg_evento_data_fim'
+		WHERE p.post_type = 'sg_eventos'
+		AND p.post_status = 'publish'
+		AND pm1.meta_value IS NOT NULL
+		ORDER BY pm1.meta_value ASC
+		LIMIT %d
+	", $limit * 2 ) );
+	
+	if ( ! empty( $sg_eventos_query ) ) {
+		foreach ( $sg_eventos_query as $row ) {
+			$event_date = ! empty( $row->start_date ) ? $row->start_date : $row->end_date;
+			
+			if ( $event_date ) {
+				// Se for evento futuro ou recente (últimos 30 dias), incluir
+				$event_timestamp = strtotime( $event_date );
+				$days_diff = ( $event_timestamp - strtotime( $today ) ) / ( 60 * 60 * 24 );
+				
+				if ( $days_diff >= -30 ) { // Eventos dos últimos 30 dias ou futuros
+					$event_title = $row->post_title;
+					$event_categoria = sg_detect_event_category( $event_title );
+					
+					// Verificar categoria se especificada
+					if ( $categoria && $event_categoria !== $categoria ) {
+						continue;
+					}
+					
+					$events[] = array(
+						'id'        => $row->ID,
+						'title'     => $event_title,
+						'date'      => $event_date,
+						'end_date'  => $row->end_date,
+						'permalink' => get_permalink( $row->ID ),
+						'type'      => 'sg_eventos',
+						'categoria' => $event_categoria,
+					);
+				}
+			}
+		}
+	}
+	
 	// Buscar eventos ETN usando SQL direto com JOIN para melhor performance
 	// Evita múltiplas chamadas de get_post_meta() dentro de loops
 	$etn_query = $wpdb->get_results( $wpdb->prepare( "
@@ -1738,6 +2951,42 @@ function sg_get_all_calendar_events() {
 	$today = current_time( 'Y-m-d' );
 	$events = array();
 	
+	// PRIMEIRO: Buscar eventos próprios (sg_eventos) - PRIORIDADE
+	$sg_eventos_query = $wpdb->get_results( "
+		SELECT p.ID, p.post_title, p.post_name,
+		       pm1.meta_value as start_date,
+		       pm2.meta_value as end_date
+		FROM {$wpdb->posts} p
+		LEFT JOIN {$wpdb->postmeta} pm1 ON p.ID = pm1.post_id AND pm1.meta_key = '_sg_evento_data_inicio'
+		LEFT JOIN {$wpdb->postmeta} pm2 ON p.ID = pm2.post_id AND pm2.meta_key = '_sg_evento_data_fim'
+		WHERE p.post_type = 'sg_eventos'
+		AND p.post_status = 'publish'
+		AND pm1.meta_value IS NOT NULL
+		ORDER BY pm1.meta_value ASC
+	" );
+	
+	if ( ! empty( $sg_eventos_query ) ) {
+		foreach ( $sg_eventos_query as $row ) {
+			$event_date = ! empty( $row->start_date ) ? $row->start_date : $row->end_date;
+			
+			if ( $event_date ) {
+				// Incluir todos os eventos, independentemente da data (incluindo passados)
+				$event_title = $row->post_title;
+				$event_categoria = sg_detect_event_category( $event_title );
+				
+				$events[] = array(
+					'id'        => $row->ID,
+					'title'     => $event_title,
+					'date'      => $event_date,
+					'end_date'  => $row->end_date,
+					'permalink' => get_permalink( $row->ID ),
+					'type'      => 'sg_eventos',
+					'categoria' => $event_categoria,
+				);
+			}
+		}
+	}
+	
 	// Buscar todos os eventos ETN usando JOIN para evitar múltiplas consultas
 	$etn_query = $wpdb->get_results( "
 		SELECT p.ID, p.post_title, p.post_name,
@@ -1827,8 +3076,8 @@ function sg_get_all_calendar_events() {
 function sg_clear_events_cache( $post_id ) {
 	$post_type = get_post_type( $post_id );
 	
-	// Se for um evento (ETN ou tribe_events), limpar cache
-	if ( in_array( $post_type, array( 'etn', 'tribe_events' ) ) ) {
+	// Se for um evento (sg_eventos, ETN ou tribe_events), limpar cache
+	if ( in_array( $post_type, array( 'sg_eventos', 'etn', 'tribe_events' ) ) ) {
 		// Limpar cache principal
 		wp_cache_delete( 'sg_all_calendar_events', 'sg_events' );
 		// Limpar possíveis caches de consultas específicas
@@ -3514,6 +4763,1321 @@ class SG_Quick_Settings_Widget {
 
 // Inicializar widget
 new SG_Quick_Settings_Widget();
+
+/**
+ * ============================================
+ * WIDGET: GERENCIAMENTO DE CALENDÁRIO DE EVENTOS
+ * ============================================
+ */
+
+/**
+ * Widget customizado: Gerenciamento de Calendário de Eventos
+ * Permite acesso rápido a todas as funcionalidades de eventos
+ */
+class SG_Calendar_Events_Widget {
+	
+	public function __construct() {
+		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
+	}
+	
+	/**
+	 * Adicionar widget ao dashboard
+	 */
+	public function add_dashboard_widget() {
+		wp_add_dashboard_widget(
+			'sg_calendar_events',
+			'📅 Gerenciamento de Calendário de Eventos',
+			array( $this, 'render_widget' )
+		);
+	}
+	
+	/**
+	 * Contar eventos por tipo
+	 */
+	private function count_events() {
+		$counts = array(
+			'sg_eventos' => 0,
+			'etn' => 0,
+			'tribe_events' => 0,
+			'total' => 0,
+			'upcoming' => 0,
+			'past' => 0
+		);
+		
+		global $wpdb;
+		$today = current_time( 'Y-m-d' );
+		
+		// PRIMEIRO: Contar eventos próprios (sg_eventos)
+		if ( post_type_exists( 'sg_eventos' ) ) {
+			$sg_count = wp_count_posts( 'sg_eventos' );
+			$counts['sg_eventos'] = isset( $sg_count->publish ) ? (int) $sg_count->publish : 0;
+			$counts['total'] += $counts['sg_eventos'];
+			
+			// Contar eventos futuros sg_eventos
+			if ( $counts['sg_eventos'] > 0 ) {
+				$sg_future = $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT(DISTINCT p.ID) 
+					FROM {$wpdb->posts} p
+					INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+					WHERE p.post_type = 'sg_eventos' 
+					AND p.post_status = 'publish'
+					AND pm.meta_key = '_sg_evento_data_inicio'
+					AND pm.meta_value >= %s
+					AND pm.meta_value != ''",
+					$today
+				) );
+				$counts['upcoming'] += (int) $sg_future;
+			}
+		}
+		
+		// Contar eventos ETN - VERIFICAR SE EXISTE NA TABELA
+		// Primeiro verificar se o tipo existe na tabella wp_posts
+		$etn_exists = $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'etn' LIMIT 1"
+		);
+		
+		if ( $etn_exists > 0 || post_type_exists( 'etn' ) ) {
+			// Contar total de eventos ETN publicados usando SQL direto
+			$etn_total = $wpdb->get_var(
+				"SELECT COUNT(DISTINCT p.ID) 
+				FROM {$wpdb->posts} p
+				WHERE p.post_type = 'etn' 
+				AND p.post_status = 'publish'"
+			);
+			$counts['etn'] = (int) $etn_total;
+			$counts['total'] += $counts['etn'];
+			
+			// Contar eventos ETN futuros
+			if ( $counts['etn'] > 0 ) {
+				// Buscar eventos com data
+				$etn_future = $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT(DISTINCT p.ID) 
+					FROM {$wpdb->posts} p
+					INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+					WHERE p.post_type = 'etn' 
+					AND p.post_status = 'publish'
+					AND pm.meta_key = 'etn_start_date'
+					AND pm.meta_value >= %s
+					AND pm.meta_value != ''
+					AND pm.meta_value IS NOT NULL",
+					$today
+				) );
+				
+				// Se retornou null ou false, tentar sem filtro de data
+				if ( $etn_future === null || $etn_future === false ) {
+					$etn_future = 0;
+				}
+				
+				$counts['upcoming'] += (int) $etn_future;
+			}
+		}
+		
+		// Contar eventos The Events Calendar (compatibilidade)
+		if ( post_type_exists( 'tribe_events' ) ) {
+			$tribe_count = wp_count_posts( 'tribe_events' );
+			$counts['tribe_events'] = isset( $tribe_count->publish ) ? (int) $tribe_count->publish : 0;
+			$counts['total'] += $counts['tribe_events'];
+			
+			// Contar eventos futuros Tribe
+			if ( $counts['tribe_events'] > 0 ) {
+				$tribe_future = $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT(DISTINCT p.ID) 
+					FROM {$wpdb->posts} p
+					INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+					WHERE p.post_type = 'tribe_events' 
+					AND p.post_status = 'publish'
+					AND pm.meta_key = '_EventStartDate'
+					AND pm.meta_value >= %s
+					AND pm.meta_value != ''",
+					$today
+				) );
+				
+				// Tribe Events pode ter formato de data diferente (timestamp ou datetime)
+				if ( $tribe_future === null || $tribe_future === false ) {
+					$tribe_future = $wpdb->get_var( $wpdb->prepare(
+						"SELECT COUNT(DISTINCT p.ID) 
+						FROM {$wpdb->posts} p
+						INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+						WHERE p.post_type = 'tribe_events' 
+						AND p.post_status = 'publish'
+						AND pm.meta_key = '_EventStartDate'
+						AND (CAST(pm.meta_value AS DATE) >= %s OR CAST(pm.meta_value AS UNSIGNED) >= %d)",
+						$today,
+						strtotime( $today )
+					) );
+				}
+				
+				$counts['upcoming'] += (int) $tribe_future;
+			}
+		}
+		
+		// Calcular eventos passados
+		$counts['past'] = max( 0, $counts['total'] - $counts['upcoming'] );
+		
+		return $counts;
+	}
+	
+	/**
+	 * Renderizar conteúdo do widget
+	 */
+	public function render_widget() {
+		$counts = $this->count_events();
+		$has_sg_eventos = post_type_exists( 'sg_eventos' );
+		$has_etn = post_type_exists( 'etn' );
+		$has_tribe = post_type_exists( 'tribe_events' );
+		
+		// DEBUG: Verificar valores (remover após resolver)
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && isset( $_GET['sg_debug'] ) ) {
+			error_log( 'SG Eventos Debug - Total: ' . $counts['total'] . ', ETN: ' . $counts['etn'] . ', SG: ' . $counts['sg_eventos'] );
+		}
+		
+		// Mostrar mensagem de importação se houver
+		if ( isset( $_GET['sg_import'] ) ) {
+			if ( $_GET['sg_import'] === 'success' ) {
+				$imported = isset( $_GET['imported'] ) ? intval( $_GET['imported'] ) : 0;
+				$skipped = isset( $_GET['skipped'] ) ? intval( $_GET['skipped'] ) : 0;
+				echo '<div class="notice notice-success is-dismissible" style="margin: 0 0 15px 0;"><p>';
+				printf( 
+					__( 'Importação concluída! %d eventos importados, %d ignorados (já existentes).', 'sg-juridico' ),
+					$imported,
+					$skipped
+				);
+				echo '</p></div>';
+			} elseif ( $_GET['sg_import'] === 'error' ) {
+				echo '<div class="notice notice-error is-dismissible" style="margin: 0 0 15px 0;"><p>';
+				_e( 'Erro na importação. Verifique se os tipos de post estão disponíveis.', 'sg-juridico' );
+				echo '</p></div>';
+			}
+		}
+		?>
+		<div class="sg-calendar-events-widget">
+			<style>
+				.sg-calendar-events-widget {
+					padding: 0;
+				}
+				.sg-events-section {
+					margin-bottom: 20px;
+					padding-bottom: 15px;
+					border-bottom: 1px solid #e0e0e0;
+				}
+				.sg-events-section:last-child {
+					border-bottom: none;
+					margin-bottom: 0;
+					padding-bottom: 0;
+				}
+				.sg-events-title {
+					font-size: 15px;
+					font-weight: 700;
+					color: #000000;
+					margin: 0 0 14px 0;
+					display: flex;
+					align-items: center;
+					gap: 8px;
+					letter-spacing: -0.2px;
+				}
+				.sg-events-title svg {
+					width: 18px;
+					height: 18px;
+					color: #5CE1E6;
+					stroke-width: 2.5;
+				}
+				.sg-events-stats {
+					display: grid;
+					grid-template-columns: repeat(2, 1fr);
+					gap: 10px;
+					margin-bottom: 15px;
+				}
+				.sg-stat-card {
+					background: #f8f9fa;
+					border: 1px solid #e0e0e0;
+					border-radius: 6px;
+					padding: 12px;
+					text-align: center;
+				}
+				.sg-stat-number {
+					font-size: 24px;
+					font-weight: 700;
+					color: #5CE1E6;
+					display: block;
+					margin-bottom: 4px;
+				}
+				.sg-stat-label {
+					font-size: 12px;
+					color: #666;
+					text-transform: uppercase;
+					letter-spacing: 0.5px;
+				}
+				.sg-events-links {
+					display: grid;
+					grid-template-columns: repeat(2, 1fr);
+					gap: 10px;
+				}
+				.sg-events-link {
+					display: flex;
+					align-items: center;
+					gap: 10px;
+					padding: 10px 14px;
+					background: #ffffff;
+					border: 1px solid #666666;
+					border-radius: 6px;
+					text-decoration: none;
+					color: #000000 !important;
+					font-size: 14px;
+					font-weight: 500;
+					line-height: 1.4;
+					transition: all 0.2s ease;
+					min-height: 44px;
+				}
+				.sg-events-link *:not(.status-badge) {
+					color: #000000 !important;
+				}
+				.sg-events-link:focus {
+					outline: 2px solid #5CE1E6;
+					outline-offset: 2px;
+					color: #000000 !important;
+				}
+				.sg-events-link:focus *:not(.status-badge) {
+					color: #000000 !important;
+				}
+				.sg-events-link:hover {
+					background: #5CE1E6;
+					color: #000000 !important;
+					border-color: #5CE1E6;
+					transform: translateY(-1px);
+					box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+				}
+				.sg-events-link:hover *:not(.status-badge) {
+					color: #000000 !important;
+				}
+				.sg-events-link:active {
+					transform: translateY(0);
+					box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+					color: #000000 !important;
+				}
+				.sg-events-link:active *:not(.status-badge) {
+					color: #000000 !important;
+				}
+				.sg-events-link svg {
+					width: 18px;
+					height: 18px;
+					flex-shrink: 0;
+					stroke: #000000 !important;
+					stroke-width: 2;
+					fill: none;
+				}
+				.sg-events-link:hover svg {
+					stroke: #000000 !important;
+				}
+				.sg-events-link .status-badge {
+					margin-left: auto;
+					font-size: 11px;
+					font-weight: 600;
+					padding: 4px 8px;
+					border-radius: 4px;
+					background: #2e7d32;
+					color: #ffffff;
+					letter-spacing: 0.3px;
+					white-space: nowrap;
+				}
+				.sg-events-link .status-badge.missing {
+					background: #f57c00;
+					color: #ffffff;
+				}
+				.sg-events-link:visited {
+					color: #000000 !important;
+				}
+				.sg-events-link:visited *:not(.status-badge) {
+					color: #000000 !important;
+				}
+				@media (max-width: 1200px) {
+					.sg-events-links,
+					.sg-events-stats {
+						grid-template-columns: 1fr;
+					}
+					.sg-events-link {
+						font-size: 14px;
+						padding: 12px 14px;
+					}
+				}
+				@media (max-width: 782px) {
+					.sg-events-link {
+						min-height: 48px;
+						padding: 12px 16px;
+					}
+					.sg-events-title {
+						font-size: 16px;
+					}
+				}
+			</style>
+			
+			<!-- Estatísticas -->
+			<div class="sg-events-section">
+				<h3 class="sg-events-title">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M9 11l3 3L22 4"/>
+						<path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+					</svg>
+					Estatísticas
+				</h3>
+				<div class="sg-events-stats">
+					<div class="sg-stat-card">
+						<span class="sg-stat-number"><?php echo esc_html( number_format_i18n( $counts['total'] ) ); ?></span>
+						<span class="sg-stat-label">Total de Eventos</span>
+						<?php if ( current_user_can( 'manage_options' ) ) : ?>
+							<div style="font-size: 10px; margin-top: 5px; color: #666; opacity: 0.7;">
+								<?php 
+								global $wpdb;
+								$etn_check = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'etn' AND post_status = 'publish'" );
+								$sg_check = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'sg_eventos' AND post_status = 'publish'" );
+								?>
+								SG: <?php echo (int) $sg_check; ?> | ETN: <?php echo (int) $etn_check; ?>
+							</div>
+						<?php endif; ?>
+					</div>
+					<div class="sg-stat-card">
+						<span class="sg-stat-number"><?php echo esc_html( number_format_i18n( $counts['upcoming'] ) ); ?></span>
+						<span class="sg-stat-label">Eventos Futuros</span>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Criar Eventos -->
+			<div class="sg-events-section">
+				<h3 class="sg-events-title">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<line x1="12" y1="5" x2="12" y2="19"/>
+						<line x1="5" y1="12" x2="19" y2="12"/>
+					</svg>
+					Criar Eventos
+				</h3>
+				<div class="sg-events-links">
+					<?php if ( $has_sg_eventos ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=sg_eventos' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="12" y1="5" x2="12" y2="19"/>
+								<line x1="5" y1="12" x2="19" y2="12"/>
+							</svg>
+							Novo Evento
+							<span class="status-badge">Criar</span>
+						</a>
+					<?php endif; ?>
+					
+					<?php if ( $has_etn ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=etn' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+								<line x1="16" y1="2" x2="16" y2="6"/>
+								<line x1="8" y1="2" x2="8" y2="6"/>
+								<line x1="3" y1="10" x2="21" y2="10"/>
+							</svg>
+							Novo Evento (ETN)
+						</a>
+					<?php endif; ?>
+					
+					<?php if ( $has_tribe ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=tribe_events' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+								<line x1="16" y1="2" x2="16" y2="6"/>
+								<line x1="8" y1="2" x2="8" y2="6"/>
+								<line x1="3" y1="10" x2="21" y2="10"/>
+							</svg>
+							Novo Evento (Tribe)
+						</a>
+					<?php endif; ?>
+					
+					<?php if ( ! $has_sg_eventos && ! $has_etn && ! $has_tribe ) : ?>
+						<div class="sg-events-link" style="opacity: 0.6; cursor: not-allowed;">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<circle cx="12" cy="12" r="10"/>
+								<line x1="12" y1="8" x2="12" y2="12"/>
+								<line x1="12" y1="16" x2="12.01" y2="16"/>
+							</svg>
+							Sistema de eventos não disponível
+						</div>
+					<?php endif; ?>
+				</div>
+			</div>
+			
+			<!-- Gerenciar Eventos -->
+			<div class="sg-events-section">
+				<h3 class="sg-events-title">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+						<polyline points="14 2 14 8 20 8"/>
+						<line x1="16" y1="13" x2="8" y2="13"/>
+						<line x1="16" y1="17" x2="8" y2="17"/>
+					</svg>
+					Gerenciar Eventos
+				</h3>
+				<div class="sg-events-links">
+					<?php if ( $has_sg_eventos || $has_etn ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=sg-todos-eventos' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+								<line x1="16" y1="2" x2="16" y2="6"/>
+								<line x1="8" y1="2" x2="8" y2="6"/>
+								<line x1="3" y1="10" x2="21" y2="10"/>
+								<line x1="8" y1="14" x2="16" y2="14"/>
+							</svg>
+							Todos os Eventos
+							<?php if ( $counts['total'] > 0 ) : ?>
+								<span class="status-badge"><?php echo esc_html( $counts['total'] ); ?></span>
+							<?php endif; ?>
+						</a>
+					<?php endif; ?>
+					
+					<?php if ( $has_sg_eventos ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=sg_eventos' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+								<line x1="16" y1="2" x2="16" y2="6"/>
+								<line x1="8" y1="2" x2="8" y2="6"/>
+								<line x1="3" y1="10" x2="21" y2="10"/>
+								<line x1="8" y1="14" x2="16" y2="14"/>
+							</svg>
+							Eventos Próprios
+							<?php if ( $counts['sg_eventos'] > 0 ) : ?>
+								<span class="status-badge"><?php echo esc_html( $counts['sg_eventos'] ); ?></span>
+							<?php endif; ?>
+						</a>
+					<?php endif; ?>
+					
+					<?php if ( $has_etn ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=etn' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+								<line x1="16" y1="2" x2="16" y2="6"/>
+								<line x1="8" y1="2" x2="8" y2="6"/>
+								<line x1="3" y1="10" x2="21" y2="10"/>
+								<line x1="8" y1="14" x2="16" y2="14"/>
+							</svg>
+							Eventos ETN
+							<?php if ( $counts['etn'] > 0 ) : ?>
+								<span class="status-badge"><?php echo esc_html( $counts['etn'] ); ?></span>
+							<?php endif; ?>
+						</a>
+					<?php endif; ?>
+					
+					<?php if ( $has_tribe ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=tribe_events' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+								<line x1="16" y1="2" x2="16" y2="6"/>
+								<line x1="8" y1="2" x2="8" y2="6"/>
+								<line x1="3" y1="10" x2="21" y2="10"/>
+								<line x1="8" y1="14" x2="16" y2="14"/>
+							</svg>
+							Eventos Tribe
+							<?php if ( $counts['tribe_events'] > 0 ) : ?>
+								<span class="status-badge"><?php echo esc_html( $counts['tribe_events'] ); ?></span>
+							<?php endif; ?>
+						</a>
+					<?php endif; ?>
+					
+					<?php
+					// Link para página de eventos no frontend (prioridade para sg_eventos)
+					$events_page_url = get_post_type_archive_link( 'sg_eventos' );
+					if ( ! $events_page_url && $has_etn ) {
+						$events_page_url = get_post_type_archive_link( 'etn' );
+					}
+					if ( ! $events_page_url && $has_tribe ) {
+						$events_page_url = get_post_type_archive_link( 'tribe_events' );
+					}
+					if ( ! $events_page_url ) {
+						$events_page_url = home_url( '/eventos' );
+					}
+					?>
+					<a href="<?php echo esc_url( $events_page_url ); ?>" target="_blank" class="sg-events-link">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+							<polyline points="15 3 21 3 21 9"/>
+							<line x1="10" y1="14" x2="21" y2="3"/>
+						</svg>
+						Ver Calendário no Site
+					</a>
+				</div>
+			</div>
+			
+			<!-- Configurações e Ferramentas -->
+			<div class="sg-events-section">
+				<h3 class="sg-events-title">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="12" cy="12" r="3"/>
+						<path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
+					</svg>
+					Configurações e Ferramentas
+				</h3>
+				<div class="sg-events-links">
+					<?php if ( $has_sg_eventos ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=sg_evento_categoria&post_type=sg_eventos' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+								<line x1="7" y1="7" x2="7.01" y2="7"/>
+							</svg>
+							Categorias de Eventos
+						</a>
+					<?php endif; ?>
+					
+					<?php if ( $has_etn ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=etn_category&post_type=etn' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+								<line x1="7" y1="7" x2="7.01" y2="7"/>
+							</svg>
+							Categorias ETN
+						</a>
+					<?php endif; ?>
+					
+					<?php if ( $has_tribe ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=tribe_events_cat&post_type=tribe_events' ) ); ?>" class="sg-events-link">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+								<line x1="7" y1="7" x2="7.01" y2="7"/>
+							</svg>
+							Categorias Tribe
+						</a>
+					<?php endif; ?>
+					
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=sg-juridico-settings' ) ); ?>" class="sg-events-link">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<circle cx="12" cy="12" r="3"/>
+							<path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
+						</svg>
+						Configurações do Tema
+					</a>
+					
+					<?php if ( $has_etn && $has_sg_eventos ) : 
+						$etn_count = wp_count_posts( 'etn' );
+						$etn_total = isset( $etn_count->publish ) ? (int) $etn_count->publish : 0;
+					?>
+						<?php if ( $etn_total > 0 ) : ?>
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="sg-import-form" style="margin-top: 10px;">
+								<?php wp_nonce_field( 'sg_import_etn_events', 'sg_import_nonce' ); ?>
+								<input type="hidden" name="action" value="sg_import_etn_events">
+								<button type="submit" class="sg-events-link" style="width: 100%; background: #f57c00; border-color: #f57c00;" onclick="return confirm('Importar todos os eventos ETN para o novo sistema? Isso criará cópias, não removerá os originais.');">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+										<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+										<polyline points="7 10 12 15 17 10"/>
+										<line x1="12" y1="15" x2="12" y2="3"/>
+									</svg>
+									Importar Eventos ETN (<?php echo esc_html( $etn_total ); ?>)
+								</button>
+							</form>
+						<?php endif; ?>
+					<?php endif; ?>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+}
+
+// Inicializar widget
+new SG_Calendar_Events_Widget();
+
+/**
+ * ============================================
+ * PÁGINA DE LISTAGEM UNIFICADA DE EVENTOS
+ * ============================================
+ */
+
+/**
+ * Adicionar página de listagem unificada de eventos
+ */
+function sg_add_unified_events_page() {
+	// Adicionar como submenu apenas uma vez, preferindo sg_eventos
+	// Verificar se pelo menos um tipo de evento existe no banco ou está registrado
+	global $wpdb;
+	static $menu_added = false; // Prevenir duplicação
+	
+	if ( $menu_added ) {
+		return; // Já foi adicionado
+	}
+	
+	$has_sg_eventos = post_type_exists( 'sg_eventos' );
+	$has_etn = post_type_exists( 'etn' );
+	
+	// Verificar se há eventos no banco mesmo que não estejam registrados
+	$count_sg = $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+		'sg_eventos'
+	) );
+	$count_etn = $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+		'etn'
+	) );
+	
+	// Adicionar apenas uma vez, priorizando sg_eventos
+	if ( $has_sg_eventos || $count_sg > 0 ) {
+		add_submenu_page(
+			'edit.php?post_type=sg_eventos',
+			__( 'Todos os Eventos', 'sg-juridico' ),
+			__( 'Todos os Eventos', 'sg-juridico' ),
+			'edit_posts',
+			'sg-todos-eventos',
+			'sg_render_unified_events_page',
+			1 // Prioridade alta para aparecer no topo
+		);
+		$menu_added = true;
+	} elseif ( $has_etn || $count_etn > 0 ) {
+		// Se sg_eventos não existir mas etn existir, adicionar ao menu etn
+		add_submenu_page(
+			'edit.php?post_type=etn',
+			__( 'Todos os Eventos', 'sg-juridico' ),
+			__( 'Todos os Eventos', 'sg-juridico' ),
+			'edit_posts',
+			'sg-todos-eventos',
+			'sg_render_unified_events_page',
+			1
+		);
+		$menu_added = true;
+	}
+}
+add_action( 'admin_menu', 'sg_add_unified_events_page', 99 );
+
+/**
+ * Remover submenu padrão "Todos os Eventos" do WordPress
+ * Executar depois que os menus padrão foram criados
+ */
+function sg_remove_default_events_submenu() {
+	global $submenu;
+	
+	// Remover o submenu padrão que o WordPress cria automaticamente
+	if ( isset( $submenu['edit.php?post_type=sg_eventos'] ) ) {
+		foreach ( $submenu['edit.php?post_type=sg_eventos'] as $key => $item ) {
+			// Remover apenas o submenu padrão (slug igual ao parent), não o nosso customizado
+			if ( isset( $item[2] ) && $item[2] === 'edit.php?post_type=sg_eventos' ) {
+				unset( $submenu['edit.php?post_type=sg_eventos'][$key] );
+			}
+		}
+	}
+	
+	if ( isset( $submenu['edit.php?post_type=etn'] ) ) {
+		foreach ( $submenu['edit.php?post_type=etn'] as $key => $item ) {
+			// Remover apenas o submenu padrão (slug igual ao parent), não o nosso customizado
+			if ( isset( $item[2] ) && $item[2] === 'edit.php?post_type=etn' ) {
+				unset( $submenu['edit.php?post_type=etn'][$key] );
+			}
+		}
+	}
+}
+add_action( 'admin_menu', 'sg_remove_default_events_submenu', 101 );
+
+/**
+ * Permitir edição de posts ETN e Tribe Events mesmo quando não estão registrados
+ */
+function sg_allow_editing_unregistered_post_types() {
+	// Verificar se estamos na página de edição
+	if ( ! isset( $_GET['action'] ) || $_GET['action'] !== 'edit' ) {
+		return;
+	}
+	
+	if ( ! isset( $_GET['post'] ) ) {
+		return;
+	}
+	
+	$post_id = absint( $_GET['post'] );
+	$post = get_post( $post_id );
+	
+	if ( ! $post ) {
+		return;
+	}
+	
+	$post_type = $post->post_type;
+	
+	// Se o post type não está registrado mas é um dos tipos de evento que queremos suportar
+	if ( ! post_type_exists( $post_type ) && in_array( $post_type, array( 'etn', 'tribe_events' ) ) ) {
+		// Registrar temporariamente o post type para permitir edição
+		if ( $post_type === 'etn' ) {
+			// Criar um post type básico para ETN
+			register_post_type( 'etn', array(
+				'public' => true,
+				'show_ui' => true,
+				'show_in_menu' => true,
+				'capability_type' => 'post',
+				'map_meta_cap' => true,
+				'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+			) );
+		} elseif ( $post_type === 'tribe_events' ) {
+			// Criar um post type básico para Tribe Events
+			register_post_type( 'tribe_events', array(
+				'public' => true,
+				'show_ui' => true,
+				'show_in_menu' => true,
+				'capability_type' => 'post',
+				'map_meta_cap' => true,
+				'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+			) );
+		}
+		
+		// Remover suporte para comentários e trackbacks
+		remove_post_type_support( $post_type, 'comments' );
+		remove_post_type_support( $post_type, 'trackbacks' );
+	}
+}
+add_action( 'admin_init', 'sg_allow_editing_unregistered_post_types', 1 );
+
+/**
+ * Otimizar página de edição de eventos - remover meta boxes desnecessários
+ */
+function sg_optimize_event_edit_page() {
+	$screen = get_current_screen();
+	
+	// Verificar se estamos editando um evento
+	if ( ! $screen || ! in_array( $screen->post_type, array( 'sg_eventos', 'etn', 'tribe_events' ) ) ) {
+		return;
+	}
+	
+	// Remover meta boxes desnecessários
+	remove_meta_box( 'commentsdiv', $screen->post_type, 'normal' ); // Comentários
+	remove_meta_box( 'commentstatusdiv', $screen->post_type, 'normal' ); // Status de comentários
+	remove_meta_box( 'trackbacksdiv', $screen->post_type, 'normal' ); // Trackbacks
+	remove_meta_box( 'slugdiv', $screen->post_type, 'normal' ); // Slug (já está no permalink)
+	remove_meta_box( 'authordiv', $screen->post_type, 'normal' ); // Autor
+	remove_meta_box( 'postcustom', $screen->post_type, 'normal' ); // Campos personalizados (se não necessário)
+	remove_meta_box( 'revisionsdiv', $screen->post_type, 'normal' ); // Revisões (opcional)
+	
+	// Remover meta boxes de plugins comuns
+	remove_meta_box( 'litespeed_meta_box', $screen->post_type, 'normal' ); // LiteSpeed Cache
+	remove_meta_box( 'wpseo_meta', $screen->post_type, 'normal' ); // Yoast SEO (se existir)
+	
+	// Remover meta boxes de categorias/tags se não forem necessários (manter apenas se o evento usar)
+	// remove_meta_box( 'tagsdiv-post_tag', $screen->post_type, 'side' ); // Tags padrão
+	// remove_meta_box( 'categorydiv', $screen->post_type, 'side' ); // Categorias padrão
+	
+	// Remover Excerpt se não for necessário
+	remove_meta_box( 'postexcerpt', $screen->post_type, 'normal' );
+	
+	// Remover Featured Image se não for necessário (comentar se precisar)
+	// remove_meta_box( 'postimagediv', $screen->post_type, 'side' );
+}
+add_action( 'add_meta_boxes', 'sg_optimize_event_edit_page', 99 );
+
+/**
+ * Remover colunas desnecessárias da lista de eventos
+ */
+function sg_optimize_event_columns( $columns ) {
+	global $typenow;
+	
+	if ( ! in_array( $typenow, array( 'sg_eventos', 'etn', 'tribe_events' ) ) ) {
+		return $columns;
+	}
+	
+	// Remover colunas desnecessárias se existirem
+	unset( $columns['comments'] );
+	unset( $columns['author'] );
+	
+	return $columns;
+}
+add_filter( 'manage_posts_columns', 'sg_optimize_event_columns' );
+
+/**
+ * Desabilitar discussão (comentários) para eventos
+ */
+function sg_disable_comments_for_events( $post_types ) {
+	$event_post_types = array( 'sg_eventos', 'etn', 'tribe_events' );
+	
+	foreach ( $event_post_types as $post_type ) {
+		if ( post_type_exists( $post_type ) ) {
+			remove_post_type_support( $post_type, 'comments' );
+			remove_post_type_support( $post_type, 'trackbacks' );
+		}
+	}
+}
+add_action( 'admin_init', 'sg_disable_comments_for_events' );
+
+/**
+ * Simplificar barra de ferramentas do editor para eventos
+ */
+function sg_simplify_event_editor( $toolbars ) {
+	global $typenow;
+	
+	if ( ! in_array( $typenow, array( 'sg_eventos', 'etn', 'tribe_events' ) ) ) {
+		return $toolbars;
+	}
+	
+	// Simplificar toolbar - manter apenas ferramentas essenciais
+	// Isso pode ser customizado conforme necessário
+	return $toolbars;
+}
+// add_filter( 'tiny_mce_before_init', 'sg_simplify_event_editor' ); // Descomentar se quiser simplificar toolbar
+
+/**
+ * Remover widgets desnecessários do dashboard relacionados a eventos
+ */
+function sg_remove_event_dashboard_widgets() {
+	// Remover widgets padrão do WordPress que não são necessários
+	// remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+	// remove_meta_box( 'dashboard_incoming_links', 'dashboard', 'normal' );
+}
+// add_action( 'wp_dashboard_setup', 'sg_remove_event_dashboard_widgets' ); // Descomentar se necessário
+
+/**
+ * Renderizar página de listagem unificada
+ */
+function sg_render_unified_events_page() {
+	global $wpdb;
+	
+	// Tipos de post possíveis para eventos
+	$possible_post_types = array( 'sg_eventos', 'etn', 'tribe_events' );
+	
+	// Verificar quais tipos de post têm eventos no banco de dados
+	// Isso funciona mesmo se o post type não estiver registrado no momento
+	$post_types = array();
+	foreach ( $possible_post_types as $pt ) {
+		$count = $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->posts} 
+			WHERE post_type = %s AND post_status = 'publish'",
+			$pt
+		) );
+		
+		// Incluir se tiver eventos OU se o post type estiver registrado
+		if ( $count > 0 || post_type_exists( $pt ) ) {
+			$post_types[] = $pt;
+		}
+	}
+	
+	if ( empty( $post_types ) ) {
+		echo '<div class="wrap"><h1>' . esc_html__( 'Todos os Eventos', 'sg-juridico' ) . '</h1>';
+		echo '<p>' . esc_html__( 'Nenhum sistema de eventos configurado.', 'sg-juridico' ) . '</p></div>';
+		return;
+	}
+	
+	// Buscar eventos
+	$paged = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
+	$per_page = 20;
+	
+	// Sempre buscar diretamente do banco para garantir que funcione mesmo com post types não registrados
+	$post_types_escaped = array_map( 'esc_sql', $post_types );
+	$post_types_sql = "'" . implode( "','", $post_types_escaped ) . "'";
+	
+	// Contar total de eventos
+	$db_count = (int) $wpdb->get_var(
+		"SELECT COUNT(*) FROM {$wpdb->posts} 
+		WHERE post_type IN ($post_types_sql) 
+		AND post_status = 'publish'"
+	);
+	
+	// Buscar IDs dos eventos para a página atual
+	$offset = ( $paged - 1 ) * $per_page;
+	// Construir query de forma segura - post_types já escapados, LIMIT e OFFSET serão preparados
+	$query = "SELECT ID FROM {$wpdb->posts} 
+		WHERE post_type IN ($post_types_sql) 
+		AND post_status = 'publish'
+		ORDER BY post_date DESC
+		LIMIT " . absint( $per_page ) . " OFFSET " . absint( $offset );
+	$results = $wpdb->get_results( $query );
+	
+	// Criar objeto WP_Query simulado
+	$events_query = new WP_Query();
+	$events_query->found_posts = $db_count;
+	$events_query->max_num_pages = ceil( $db_count / $per_page );
+	
+	if ( ! empty( $results ) ) {
+		$ids = array_map( 'intval', wp_list_pluck( $results, 'ID' ) );
+		
+		// Tentar carregar posts usando WP_Query com post__in
+		// Especificar post_type explicitamente para forçar busca
+		$args = array(
+			'post__in'       => $ids,
+			'post_type'      => $post_types, // Especificar tipos explicitamente
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'orderby'        => 'post__in',
+			'order'          => 'ASC',
+			'no_found_rows'  => false,
+		);
+		
+		$events_query = new WP_Query( $args );
+		
+		// Se não carregou posts, tentar carregar diretamente usando get_post()
+		if ( $events_query->post_count === 0 && ! empty( $ids ) ) {
+			$posts = array();
+			foreach ( $ids as $post_id ) {
+				$post = get_post( $post_id );
+				if ( $post && $post->post_status === 'publish' ) {
+					$posts[] = $post;
+				}
+			}
+			
+			// Criar objeto WP_Query customizado com os posts carregados
+			if ( ! empty( $posts ) ) {
+				$events_query = new WP_Query();
+				$events_query->posts = $posts;
+				$events_query->post_count = count( $posts );
+				$events_query->found_posts = $db_count;
+				$events_query->max_num_pages = ceil( $db_count / $per_page );
+				$events_query->current_post = -1;
+			}
+		} else {
+			// Ajustar contadores se necessário
+			$events_query->found_posts = $db_count;
+			$events_query->max_num_pages = ceil( $db_count / $per_page );
+		}
+	} else {
+		// Criar query vazia
+		$events_query = new WP_Query( array( 'post__in' => array( 0 ) ) );
+		$events_query->found_posts = 0;
+		$events_query->max_num_pages = 0;
+	}
+	
+	// DEBUG: Verificar se encontrou eventos
+	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		error_log( 'SG Todos Eventos - Tipos: ' . implode( ', ', $post_types ) . ', Posts encontrados: ' . $events_query->post_count . ', Total: ' . $events_query->found_posts );
+	}
+	?>
+	<style>
+		/* Corrigir cor do cabeçalho "Título" e dos títulos de eventos */
+		.wp-list-table th.column-title.column-primary span,
+		.wp-list-table th.column-title.column-primary a,
+		.wp-list-table th.manage-column.column-title.column-primary span,
+		.wp-list-table th.manage-column.column-title.column-primary a {
+			color: #23282d !important;
+		}
+		.wp-list-table td.column-title a.row-title,
+		.wp-list-table td.title.column-title a.row-title {
+			color: #23282d !important;
+		}
+	</style>
+	<div class="wrap">
+		<h1 class="wp-heading-inline"><?php esc_html_e( 'Todos os Eventos', 'sg-juridico' ); ?></h1>
+		<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=sg_eventos' ) ); ?>" class="page-title-action">
+			<?php esc_html_e( 'Adicionar Novo Evento', 'sg-juridico' ); ?>
+		</a>
+		<hr class="wp-header-end">
+		
+		<?php 
+		// Debug visível para administradores
+		if ( current_user_can( 'manage_options' ) && isset( $_GET['debug'] ) ) {
+			echo '<div class="notice notice-info"><p><strong>Debug:</strong></p><ul>';
+			echo '<li>Tipos de post verificados: ' . implode( ', ', $post_types ) . '</li>';
+			echo '<li>Total encontrado pela query: ' . $events_query->found_posts . '</li>';
+			echo '<li>Posts na página atual: ' . $events_query->post_count . '</li>';
+			if ( ! empty( $results ) ) {
+				$ids = array_map( 'intval', wp_list_pluck( $results, 'ID' ) );
+				echo '<li>IDs encontrados no banco: ' . implode( ', ', array_slice( $ids, 0, 10 ) ) . ( count( $ids ) > 10 ? '...' : '' ) . '</li>';
+			}
+			global $wpdb;
+			$post_types_sql = "'" . implode( "','", array_map( 'esc_sql', $post_types ) ) . "'";
+			$db_count = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type IN ($post_types_sql) AND post_status = 'publish'" );
+			echo '<li>Total no banco de dados: ' . $db_count . '</li>';
+			if ( isset( $events_query->posts ) && is_array( $events_query->posts ) ) {
+				echo '<li>Posts carregados: ' . count( $events_query->posts ) . '</li>';
+			}
+			echo '</ul></div>';
+		}
+		?>
+		
+		<?php if ( $events_query->have_posts() ) : ?>
+			<table class="wp-list-table widefat fixed striped table-view-list posts">
+				<thead>
+					<tr>
+						<td id="cb" class="manage-column column-cb check-column">
+							<input id="cb-select-all-1" type="checkbox">
+						</td>
+						<th scope="col" class="manage-column column-title column-primary">
+							<span><?php esc_html_e( 'Título', 'sg-juridico' ); ?></span>
+						</th>
+						<th scope="col" class="manage-column">
+							<span><?php esc_html_e( 'Tipo', 'sg-juridico' ); ?></span>
+						</th>
+						<th scope="col" class="manage-column">
+							<span><?php esc_html_e( 'Data do Evento', 'sg-juridico' ); ?></span>
+						</th>
+						<th scope="col" class="manage-column">
+							<span><?php esc_html_e( 'Local', 'sg-juridico' ); ?></span>
+						</th>
+						<th scope="col" class="manage-column">
+							<span><?php esc_html_e( 'Data de Publicação', 'sg-juridico' ); ?></span>
+						</th>
+					</tr>
+				</thead>
+				<tbody id="the-list">
+					<?php while ( $events_query->have_posts() ) : $events_query->the_post(); 
+						$post_type = get_post_type();
+						
+						// Detectar meta keys baseado no tipo
+						if ( $post_type === 'sg_eventos' ) {
+							$meta_key_start = '_sg_evento_data_inicio';
+							$meta_key_end = '_sg_evento_data_fim';
+							$meta_key_location = '_sg_evento_local';
+						} elseif ( $post_type === 'tribe_events' ) {
+							$meta_key_start = '_EventStartDate';
+							$meta_key_end = '_EventEndDate';
+							$meta_key_location = '_EventVenue';
+						} else {
+							// ETN
+							$meta_key_start = 'etn_start_date';
+							$meta_key_end = 'etn_end_date';
+							$meta_key_location = 'etn_location';
+						}
+						
+						$start_date = get_post_meta( get_the_ID(), $meta_key_start, true );
+						$end_date = get_post_meta( get_the_ID(), $meta_key_end, true );
+						$location = get_post_meta( get_the_ID(), $meta_key_location, true );
+						
+						// Tribe Events pode ter timestamp numérico
+						if ( $post_type === 'tribe_events' && is_numeric( $start_date ) ) {
+							$start_date = date( 'Y-m-d', $start_date );
+						}
+						if ( $post_type === 'tribe_events' && is_numeric( $end_date ) ) {
+							$end_date = date( 'Y-m-d', $end_date );
+						}
+						
+						$event_date_display = '';
+						if ( $start_date ) {
+							$event_date_display = date_i18n( 'd/m/Y', strtotime( $start_date ) );
+							if ( $end_date && $end_date !== $start_date ) {
+								$end_formatted = is_numeric( $end_date ) ? date_i18n( 'd/m/Y', $end_date ) : date_i18n( 'd/m/Y', strtotime( $end_date ) );
+								$event_date_display .= ' até ' . $end_formatted;
+							}
+						} else {
+							$event_date_display = '<span style="color: #d63638;">—</span>';
+						}
+						
+						$type_label = '';
+						if ( $post_type === 'sg_eventos' ) {
+							$type_label = 'Próprio';
+						} elseif ( $post_type === 'etn' ) {
+							$type_label = 'ETN';
+						} elseif ( $post_type === 'tribe_events' ) {
+							$type_label = 'Tribe';
+						}
+						
+						// Construir URL de edição manualmente se necessário
+						$edit_link = get_edit_post_link( get_the_ID() );
+						
+						// Sempre construir a URL com post_type para garantir que funcione
+						// mesmo se get_edit_post_link retornar vazio ou não incluir o post_type
+						if ( empty( $edit_link ) || $post_type !== 'sg_eventos' ) {
+							// Construir URL baseada no tipo de post
+							if ( $post_type === 'sg_eventos' ) {
+								$edit_link = admin_url( 'post.php?action=edit&post=' . get_the_ID() );
+							} elseif ( $post_type === 'etn' ) {
+								// Para ETN, usar a URL específica do post type
+								$edit_link = admin_url( 'post.php?action=edit&post=' . get_the_ID() . '&post_type=etn' );
+							} elseif ( $post_type === 'tribe_events' ) {
+								// Para Tribe Events, usar a URL específica do post type
+								$edit_link = admin_url( 'post.php?action=edit&post=' . get_the_ID() . '&post_type=tribe_events' );
+							} else {
+								// Fallback genérico
+								$edit_link = admin_url( 'post.php?action=edit&post=' . get_the_ID() . '&post_type=' . $post_type );
+							}
+						} else {
+							// Se já temos um link mas não inclui post_type, adicionar se necessário
+							if ( $post_type !== 'sg_eventos' && strpos( $edit_link, 'post_type=' ) === false ) {
+								$edit_link .= ( strpos( $edit_link, '?' ) !== false ? '&' : '?' ) . 'post_type=' . $post_type;
+							}
+						}
+						
+						// Construir URL de exclusão
+						$delete_link = get_delete_post_link( get_the_ID() );
+						if ( empty( $delete_link ) || $post_type !== 'sg_eventos' ) {
+							// Construir URL de exclusão baseada no tipo de post
+							$delete_link = admin_url( 'post.php?action=delete&post=' . get_the_ID() . '&_wpnonce=' . wp_create_nonce( 'delete-post_' . get_the_ID() ) );
+							if ( $post_type !== 'sg_eventos' ) {
+								$delete_link .= '&post_type=' . $post_type;
+							}
+						}
+					?>
+						<tr>
+							<th scope="row" class="check-column">
+								<input id="cb-select-<?php echo get_the_ID(); ?>" type="checkbox" name="post[]" value="<?php echo get_the_ID(); ?>">
+							</th>
+							<td class="title column-title has-row-actions column-primary" data-colname="Título">
+								<strong>
+									<a class="row-title" href="<?php echo esc_url( $edit_link ); ?>" aria-label="<?php echo esc_attr( get_the_title() . ' (Editar)' ); ?>">
+										<?php the_title(); ?>
+									</a>
+								</strong>
+								<div class="row-actions">
+									<span class="edit">
+										<a href="<?php echo esc_url( $edit_link ); ?>" aria-label="<?php echo esc_attr( 'Editar ' . get_the_title() ); ?>">
+											<?php esc_html_e( 'Editar', 'sg-juridico' ); ?>
+										</a> |
+									</span>
+									<span class="trash">
+										<a href="<?php echo esc_url( $delete_link ); ?>" class="submitdelete" aria-label="<?php echo esc_attr( 'Excluir ' . get_the_title() ); ?>">
+											<?php esc_html_e( 'Excluir', 'sg-juridico' ); ?>
+										</a>
+									</span>
+								</div>
+							</td>
+							<td class="column-type" data-colname="Tipo">
+								<?php echo esc_html( $type_label ); ?>
+							</td>
+							<td class="column-event-date" data-colname="Data do Evento">
+								<?php echo $event_date_display; ?>
+							</td>
+							<td class="column-location" data-colname="Local">
+								<?php echo $location ? esc_html( $location ) : '<span style="color: #999;">—</span>'; ?>
+							</td>
+							<td class="date column-date" data-colname="Data">
+								<?php echo esc_html( get_the_date() ); ?>
+							</td>
+						</tr>
+					<?php endwhile; ?>
+				</tbody>
+			</table>
+			
+			<div class="tablenav bottom">
+				<div class="tablenav-pages">
+					<?php
+					$big = 999999999;
+					echo paginate_links( array(
+						'base'    => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+						'format'  => '?paged=%#%',
+						'current' => max( 1, $paged ),
+						'total'   => $events_query->max_num_pages,
+					) );
+					?>
+				</div>
+			</div>
+			
+			<?php wp_reset_postdata(); ?>
+		<?php else : ?>
+			<div class="notice notice-info">
+				<p><?php esc_html_e( 'Nenhum evento encontrado. Verifique se existem eventos publicados.', 'sg-juridico' ); ?></p>
+				<?php if ( current_user_can( 'manage_options' ) ) : ?>
+					<p><strong><?php esc_html_e( 'Debug:', 'sg-juridico' ); ?></strong></p>
+					<ul>
+						<li><?php printf( esc_html__( 'Tipos de post buscados: %s', 'sg-juridico' ), implode( ', ', $post_types ) ); ?></li>
+						<li><?php printf( esc_html__( 'Posts encontrados: %d', 'sg-juridico' ), $events_query->found_posts ); ?></li>
+						<li><?php printf( esc_html__( 'Posts na página atual: %d', 'sg-juridico' ), $events_query->post_count ); ?></li>
+					</ul>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
+/**
+ * ============================================
+ * FERRAMENTA DE IMPORTAÇÃO DE EVENTOS ETN
+ * ============================================
+ */
+
+/**
+ * Importar eventos ETN para sg_eventos
+ */
+function sg_import_etn_events() {
+	// Verificar permissões
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'Sem permissão para importar eventos.' );
+	}
+
+	// Verificar nonce
+	if ( ! isset( $_POST['sg_import_nonce'] ) || ! wp_verify_nonce( $_POST['sg_import_nonce'], 'sg_import_etn_events' ) ) {
+		wp_die( 'Verificação de segurança falhou.' );
+	}
+
+	if ( ! post_type_exists( 'etn' ) || ! post_type_exists( 'sg_eventos' ) ) {
+		wp_redirect( admin_url( 'index.php?sg_import=error&message=tipos_nao_existem' ) );
+		exit;
+	}
+
+	// Buscar todos os eventos ETN
+	$etn_events = get_posts( array(
+		'post_type'      => 'etn',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+	) );
+
+	$imported = 0;
+	$skipped = 0;
+
+	foreach ( $etn_events as $etn_event ) {
+		// Verificar se já existe um evento sg_eventos com mesmo título e data
+		$start_date = get_post_meta( $etn_event->ID, 'etn_start_date', true );
+		if ( ! $start_date ) {
+			$skipped++;
+			continue;
+		}
+
+		// Verificar se já existe evento com mesmo título e data
+		$existing_query = new WP_Query( array(
+			'post_type'      => 'sg_eventos',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			's'              => $etn_event->post_title,
+			'meta_query'     => array(
+				array(
+					'key'   => '_sg_evento_data_inicio',
+					'value' => $start_date,
+				),
+			),
+		) );
+		$existing = $existing_query->posts;
+		wp_reset_postdata();
+
+		if ( ! empty( $existing ) ) {
+			$skipped++;
+			continue;
+		}
+
+		// Criar novo evento sg_eventos
+		$new_event_id = wp_insert_post( array(
+			'post_title'   => $etn_event->post_title,
+			'post_content' => $etn_event->post_content,
+			'post_excerpt' => $etn_event->post_excerpt,
+			'post_status'  => 'publish',
+			'post_type'    => 'sg_eventos',
+			'post_author'  => $etn_event->post_author,
+		) );
+
+		if ( $new_event_id ) {
+			// Copiar meta fields
+			$start_date = get_post_meta( $etn_event->ID, 'etn_start_date', true );
+			$end_date = get_post_meta( $etn_event->ID, 'etn_end_date', true );
+			$location = get_post_meta( $etn_event->ID, 'etn_location', true );
+
+			if ( $start_date ) {
+				update_post_meta( $new_event_id, '_sg_evento_data_inicio', $start_date );
+			}
+			if ( $end_date ) {
+				update_post_meta( $new_event_id, '_sg_evento_data_fim', $end_date );
+			}
+			if ( $location ) {
+				update_post_meta( $new_event_id, '_sg_evento_local', $location );
+			}
+
+			// Copiar featured image
+			$thumbnail_id = get_post_thumbnail_id( $etn_event->ID );
+			if ( $thumbnail_id ) {
+				set_post_thumbnail( $new_event_id, $thumbnail_id );
+			}
+
+			// Detectar e atribuir categoria
+			$category = sg_detect_event_category( $etn_event->post_title );
+			if ( $category && $category !== 'outros' ) {
+				$term = get_term_by( 'slug', $category, 'sg_evento_categoria' );
+				if ( ! $term ) {
+					// Criar termo se não existir
+					$term_result = wp_insert_term( ucfirst( str_replace( '-', ' ', $category ) ), 'sg_evento_categoria', array( 'slug' => $category ) );
+					if ( ! is_wp_error( $term_result ) ) {
+						$term_id = $term_result['term_id'];
+					}
+				} else {
+					$term_id = $term->term_id;
+				}
+				if ( isset( $term_id ) ) {
+					wp_set_post_terms( $new_event_id, array( $term_id ), 'sg_evento_categoria' );
+				}
+			}
+
+			$imported++;
+		}
+	}
+
+	// Limpar cache
+	sg_clear_sg_eventos_cache();
+
+	wp_redirect( admin_url( 'index.php?sg_import=success&imported=' . $imported . '&skipped=' . $skipped ) );
+	exit;
+}
+add_action( 'admin_post_sg_import_etn_events', 'sg_import_etn_events' );
 
 /**
  * ============================================

@@ -31,7 +31,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</div>
 
 	<footer class="entry-footer">
-		<?php sg_entry_footer(); ?>
+		<?php if ( in_array( get_post_type(), array( 'sg_eventos', 'etn', 'tribe_events' ) ) ) : ?>
+			<a href="<?php echo esc_url( get_post_type_archive_link( 'etn' ) ?: home_url( '/eventos' ) ); ?>" class="btn-view-all-events" style="display: inline-block; padding: 10px 25px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+				<?php esc_html_e( 'Ver todos os concursos', 'sg-juridico' ); ?>
+			</a>
+		<?php else : ?>
+			<a href="<?php the_permalink(); ?>" class="btn-read-more" style="display: inline-block; padding: 10px 25px; background-color: #0ea5e9; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+				<?php esc_html_e( 'Ler mais', 'sg-juridico' ); ?>
+			</a>
+		<?php endif; ?>
 	</footer>
 </article>
 

@@ -9,10 +9,11 @@
 
 get_header();
 
-// Verificar se é realmente um post ETN
+// Verificar se é realmente um evento (ETN, Tribe Events ou SG Eventos)
 global $post;
-if ( ! $post || get_post_type( $post ) !== 'etn' ) {
-	// Se não for ETN, usar template padrão
+$post_type = $post ? get_post_type( $post ) : '';
+if ( ! $post || ! in_array( $post_type, array( 'etn', 'tribe_events', 'sg_eventos' ) ) ) {
+	// Se não for um evento, usar template padrão
 	if ( have_posts() ) {
 		while ( have_posts() ) : the_post();
 			get_template_part( 'template-parts/content', get_post_type() );
@@ -39,10 +40,70 @@ if ( ! $post || get_post_type( $post ) !== 'etn' ) {
 				<header class="evento-header">
 					<div class="evento-header-content">
 						<?php
-						$start_date = get_post_meta( get_the_ID(), 'etn_start_date', true );
-						$end_date = get_post_meta( get_the_ID(), 'etn_end_date', true );
-						$event_location = get_post_meta( get_the_ID(), 'etn_location', true );
-						$event_organizer = get_post_meta( get_the_ID(), 'etn_organizer', true );
+						// Detectar meta keys baseado no tipo de post
+						$post_id = get_the_ID();
+						if ( $post_type === 'sg_eventos' ) {
+							$meta_key_start = '_sg_evento_data_inicio';
+							$meta_key_end = '_sg_evento_data_fim';
+							$meta_key_location = '_sg_evento_local';
+							$meta_key_organizer = '';
+						} elseif ( $post_type === 'tribe_events' ) {
+							$meta_key_start = '_EventStartDate';
+							$meta_key_end = '_EventEndDate';
+							$meta_key_location = '_EventVenue';
+							$meta_key_organizer = '_EventOrganizer';
+						} else {
+							// ETN
+							$meta_key_start = 'etn_start_date';
+							$meta_key_end = 'etn_end_date';
+							$meta_key_location = 'etn_location';
+							$meta_key_organizer = 'etn_organizer';
+						}
+						
+						$start_date = get_post_meta( $post_id, $meta_key_start, true );
+						$end_date = get_post_meta( $post_id, $meta_key_end, true );
+						$event_location = get_post_meta( $post_id, $meta_key_location, true );
+						$event_organizer = ! empty( $meta_key_organizer ) ? get_post_meta( $post_id, $meta_key_organizer, true ) : '';
+						
+						// Carregar horários e datas de inscrição
+						$hora_inicio = get_post_meta( $post_id, '_sg_evento_hora_inicio', true );
+						$hora_fim = get_post_meta( $post_id, '_sg_evento_hora_fim', true );
+						$data_inscricao_inicio = get_post_meta( $post_id, '_sg_evento_inscricao_inicio', true );
+						$data_inscricao_fim = get_post_meta( $post_id, '_sg_evento_inscricao_fim', true );
+						$event_address = get_post_meta( $post_id, '_sg_evento_endereco', true );
+						
+						// Formatar horários para exibição (HH:MM)
+						if ( ! empty( $hora_inicio ) && strlen( $hora_inicio ) >= 5 ) {
+							$hora_inicio = substr( $hora_inicio, 0, 5 ); // Garantir formato HH:MM
+						}
+						if ( ! empty( $hora_fim ) && strlen( $hora_fim ) >= 5 ) {
+							$hora_fim = substr( $hora_fim, 0, 5 ); // Garantir formato HH:MM
+						}
+						
+						// Formatar datas de inscrição
+						$data_inscricao_inicio_formatted = '';
+						$data_inscricao_fim_formatted = '';
+						if ( ! empty( $data_inscricao_inicio ) ) {
+							$data_inscricao_inicio_formatted = date_i18n( 'd/m/Y', strtotime( $data_inscricao_inicio ) );
+						}
+						if ( ! empty( $data_inscricao_fim ) ) {
+							$data_inscricao_fim_formatted = date_i18n( 'd/m/Y', strtotime( $data_inscricao_fim ) );
+						}
+						
+						// Converter Tribe Events timestamp para formato legível
+						if ( $post_type === 'tribe_events' && is_numeric( $start_date ) ) {
+							$start_date = date( 'Y-m-d', $start_date );
+						}
+						if ( $post_type === 'tribe_events' && is_numeric( $end_date ) ) {
+							$end_date = date( 'Y-m-d', $end_date );
+						}
+						// Se Tribe Events retornar datetime string, extrair apenas a data
+						if ( $post_type === 'tribe_events' && strpos( $start_date, ' ' ) !== false ) {
+							$start_date = date( 'Y-m-d', strtotime( $start_date ) );
+						}
+						if ( $post_type === 'tribe_events' && strpos( $end_date, ' ' ) !== false ) {
+							$end_date = date( 'Y-m-d', strtotime( $end_date ) );
+						}
 						?>
 						
 						<?php if ( $start_date ) : 
@@ -73,7 +134,41 @@ if ( ! $post || get_post_type( $post ) !== 'etn' ) {
 											<path d="M15 2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h2m0 0V0m0 2h6m-6 0V0m6 0v2m0 0h-6" stroke="currentColor" stroke-width="1.5"/>
 											<path d="M3 7h14" stroke="currentColor" stroke-width="1.5"/>
 										</svg>
-										<span><strong>Data de Início:</strong> <?php echo esc_html( $full_date ); ?></span>
+										<span><strong>Data da Realização:</strong> <?php echo esc_html( $full_date ); ?>
+										<?php if ( ! empty( $hora_inicio ) ) : ?>
+											 às <?php echo esc_html( $hora_inicio ); ?>
+										<?php endif; ?>
+										</span>
+									</div>
+								<?php endif; ?>
+								
+								<?php if ( ! empty( $hora_fim ) ) : ?>
+									<div class="evento-meta-item">
+										<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+											<path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+											<circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+										</svg>
+										<span><strong>Horário de Término:</strong> <?php echo esc_html( $hora_fim ); ?></span>
+									</div>
+								<?php endif; ?>
+								
+								<?php if ( ! empty( $data_inscricao_inicio ) || ! empty( $data_inscricao_fim ) ) : ?>
+									<div class="evento-meta-item">
+										<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+											<path d="M15 2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h2m0 0V0m0 2h6m-6 0V0m6 0v2m0 0h-6" stroke="currentColor" stroke-width="1.5"/>
+											<path d="M3 7h14" stroke="currentColor" stroke-width="1.5"/>
+										</svg>
+										<span><strong>Período de Inscrições:</strong>
+										<?php if ( ! empty( $data_inscricao_inicio ) ) : ?>
+											<?php echo esc_html( $data_inscricao_inicio_formatted ); ?>
+										<?php endif; ?>
+										<?php if ( ! empty( $data_inscricao_inicio ) && ! empty( $data_inscricao_fim ) ) : ?>
+											 até 
+										<?php endif; ?>
+										<?php if ( ! empty( $data_inscricao_fim ) ) : ?>
+											<?php echo esc_html( $data_inscricao_fim_formatted ); ?>
+										<?php endif; ?>
+										</span>
 									</div>
 								<?php endif; ?>
 								
@@ -97,6 +192,16 @@ if ( ! $post || get_post_type( $post ) !== 'etn' ) {
 											<path d="M10 2C6.5 2 3.75 4.75 3.75 8.25c0 3.5 4.375 7.875 4.375 7.875S10 19.25 10 19.25s1.875-3.125 1.875-3.125S16.25 11.75 16.25 8.25C16.25 4.75 13.5 2 10 2z" stroke="currentColor" stroke-width="1.5"/>
 										</svg>
 										<span><strong>Local:</strong> <?php echo esc_html( $event_location ); ?></span>
+									</div>
+								<?php endif; ?>
+								
+								<?php if ( ! empty( $event_address ) ) : ?>
+									<div class="evento-meta-item">
+										<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+											<path d="M10 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.5"/>
+											<path d="M10 2C6.5 2 3.75 4.75 3.75 8.25c0 3.5 4.375 7.875 4.375 7.875S10 19.25 10 19.25s1.875-3.125 1.875-3.125S16.25 11.75 16.25 8.25C16.25 4.75 13.5 2 10 2z" stroke="currentColor" stroke-width="1.5"/>
+										</svg>
+										<span><strong>Endereço:</strong> <?php echo esc_html( $event_address ); ?></span>
 									</div>
 								<?php endif; ?>
 								
