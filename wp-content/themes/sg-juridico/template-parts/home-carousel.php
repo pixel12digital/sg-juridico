@@ -161,6 +161,10 @@ if ( empty( $banner_image_ids ) || ! is_array( $banner_image_ids ) ) {
 				b.className='carousel-dot'+(i===idx?' is-active':'');
 				b.setAttribute('aria-label','Ir para slide '+(i+1));
 				b.setAttribute('type','button');
+				// Garantir que o botão seja sempre redondo
+				b.style.borderRadius = '50%';
+				b.style.width = '12px';
+				b.style.height = '12px';
 				b.addEventListener('click',function(){go(i)});
 				dots.appendChild(b);
 			});

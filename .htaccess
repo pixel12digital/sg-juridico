@@ -1,7 +1,6 @@
 # BEGIN WordPress
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /sg-juridico/
 
 # SEGURANÇA: Bloquear acesso a arquivos de debug/teste em produção
 RewriteRule ^(teste-|debug-|fix-|test-|verificar-|phpinfo|ok\.php|simple) - [F,L]
@@ -21,8 +20,17 @@ RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
 # Apenas redirecionar para WordPress se arquivo NÃO existe
+# Detectar ambiente e usar caminho correto dinamicamente
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /sg-juridico/index.php [L]
+
+# Se for localhost, usar /sg-juridico/index.php
+RewriteCond %{HTTP_HOST} ^localhost [OR]
+RewriteCond %{HTTP_HOST} ^127\.0\.0\.1 [OR]
+RewriteCond %{HTTP_HOST} ^.*\.local
+RewriteRule ^(.*)$ /sg-juridico/index.php [L]
+
+# Senão, usar /index.php (raiz - produção)
+RewriteRule ^(.*)$ /index.php [L]
 </IfModule>
 # END WordPress

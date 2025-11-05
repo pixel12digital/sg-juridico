@@ -122,6 +122,19 @@ function sg_flush_rewrite_rules() {
 add_action( 'after_switch_theme', 'sg_flush_rewrite_rules' );
 
 /**
+ * Forçar flush de rewrite rules quando necessário (útil após mudanças de URL)
+ * Adicionar ?sg_flush_rules=1 na URL do admin para forçar flush
+ */
+function sg_admin_flush_rewrite_rules() {
+	if ( isset( $_GET['sg_flush_rules'] ) && current_user_can( 'manage_options' ) ) {
+		flush_rewrite_rules( true );
+		wp_redirect( admin_url( 'options-permalink.php?settings-updated=true' ) );
+		exit;
+	}
+}
+add_action( 'admin_init', 'sg_admin_flush_rewrite_rules' );
+
+/**
  * Forçar uso de templates single-etn.php e archive-etn.php
  */
 function sg_template_include_etn( $template ) {
