@@ -34,11 +34,18 @@ CacheKeyModify -qs:_ga
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-RewriteBase /sg-juridico/
+
+# Define o caminho base conforme o ambiente (localhost vs produção)
+RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1)$ [NC]
+RewriteRule ^ - [E=SG_BASE:/sg-juridico/]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)$ [NC]
+RewriteRule ^ - [E=SG_BASE:/]
+
 RewriteRule ^index\.php$ - [L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /sg-juridico/index.php [L]
+RewriteRule . %{ENV:SG_BASE}index.php [L]
 </IfModule>
 
 # END WordPress
