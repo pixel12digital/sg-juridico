@@ -1221,6 +1221,36 @@ body.header-cart-overlay-open {
     object-fit: contain;
 }
 
+.home-carousel .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.home-carousel .carousel-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(92, 225, 230, 0.35);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.25s ease, background-color 0.25s ease, opacity 0.25s ease;
+}
+
+.home-carousel .carousel-dot:hover,
+.home-carousel .carousel-dot:focus {
+    transform: scale(1.15);
+    background: rgba(92, 225, 230, 0.6);
+    outline: none;
+}
+
+.home-carousel .carousel-dot.is-active {
+    background: #5ce1e6;
+    transform: scale(1.2);
+}
+
 .banner-slide-text {
     padding: 40px 24px;
 }
