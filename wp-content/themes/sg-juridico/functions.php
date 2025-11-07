@@ -1424,6 +1424,8 @@ function sg_scripts() {
 	// Estilos do layout da loja e filtros (WooCommerce) - carregar DEPOIS do WooCommerce
 	// Incluir TODOS os casos possíveis de páginas de produtos
 	if ( class_exists( 'WooCommerce' ) ) {
+		wp_enqueue_script( 'sg-header-cart', get_template_directory_uri() . '/js/header-cart.js', array( 'jquery' ), SG_VERSION, true );
+
 		$is_shop_page = (
 			is_shop() || 
 			is_product_taxonomy() || 
@@ -1440,6 +1442,13 @@ function sg_scripts() {
 			$shop_css_version = file_exists( $shop_css_file ) ? filemtime( $shop_css_file ) : time();
 			wp_enqueue_style( 'sg-shop-filters', get_template_directory_uri() . '/css/shop-filters.css', array( 'woocommerce-general', 'woocommerce-layout' ), $shop_css_version, 'all' );
 		}
+	}
+	
+	// CSS específico para single product (produtos relacionados, galeria, etc)
+	if ( class_exists( 'WooCommerce' ) && is_product() ) {
+		$single_css_file = get_template_directory() . '/css/single-product.css';
+		$single_css_version = file_exists( $single_css_file ) ? filemtime( $single_css_file ) : time();
+		wp_enqueue_style( 'sg-single-product', get_template_directory_uri() . '/css/single-product.css', array( 'woocommerce-general', 'woocommerce-layout' ), $single_css_version, 'all' );
 	}
 
 	// Carregar estilização específica da página Contato
@@ -1866,33 +1875,149 @@ function sg_entry_footer() {
 }
 
 /**
- * Add cart icon with item count to header
+ * Header mini cart markup helper.
  */
-function sg_cart_fragments_count( $fragments ) {
+function sg_get_header_cart_markup() {
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return '';
+	}
+
+	if ( null === WC()->cart && function_exists( 'wc_load_cart' ) ) {
+		wc_load_cart();
+	}
+
+	$cart = WC()->cart;
+	if ( ! $cart ) {
+		return '';
+	}
+
+	$cart_count   = $cart->get_cart_contents_count();
+	$cart_total   = $cart_count > 0 ? $cart->get_cart_subtotal() : '';
+	$dropdown_id = 'header-mini-cart-dropdown-' . uniqid();
+
+	ob_start();
+	?>
+	<div class="header-mini-cart-wrapper<?php echo $cart_count ? ' has-items' : ' is-empty'; ?>" data-cart-count="<?php echo esc_attr( $cart_count ); ?>">
+		<button type="button" class="header-cart-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $dropdown_id ); ?>" aria-label="<?php esc_attr_e( 'Abrir carrinho', 'sg-juridico' ); ?>">
+			<span class="screen-reader-text"><?php esc_html_e( 'Abrir carrinho', 'sg-juridico' ); ?></span>
+			<span class="header-cart-icon" aria-hidden="true">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" fill="currentColor" />
+					<path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" fill="currentColor" />
+					<path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19C19.5304 16 20.0391 15.7893 20.4142 15.4142C20.7893 15.0391 21 14.5304 21 14H9.9L9.36 11H19L22 4H6.28L5.28 2H1V1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+				</svg>
+			</span>
+			<span class="header-cart-count-bubble" aria-live="polite" aria-atomic="true"><?php echo esc_html( $cart_count ); ?></span>
+		</button>
+		<div id="<?php echo esc_attr( $dropdown_id ); ?>" class="header-mini-cart-dropdown" role="dialog" aria-modal="false" tabindex="-1" hidden data-cart-dropdown>
+			<div class="mini-cart-header">
+				<h3 class="mini-cart-title"><?php esc_html_e( 'Seu carrinho', 'sg-juridico' ); ?></h3>
+				<button type="button" class="mini-cart-close" aria-label="<?php esc_attr_e( 'Fechar carrinho', 'sg-juridico' ); ?>">&times;</button>
+			</div>
+			<?php if ( $cart_count > 0 ) : ?>
+				<div class="mini-cart-body" role="document">
+					<ul class="header-mini-cart-items">
+						<?php foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) :
+							$product = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
+
+							if ( ! $product || ! $product->exists() || $cart_item['quantity'] <= 0 ) {
+								continue;
+							}
+
+							$product_id         = $product->get_id();
+							$product_name       = apply_filters( 'woocommerce_cart_item_name', $product->get_name(), $cart_item, $cart_item_key );
+							$product_permalink  = apply_filters( 'woocommerce_cart_item_permalink', $product->is_visible() ? $product->get_permalink( $cart_item ) : '', $cart_item, $cart_item_key );
+							$thumbnail          = apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'woocommerce_thumbnail' ), $cart_item, $cart_item_key );
+							$product_price      = apply_filters( 'woocommerce_cart_item_price', WC()->cart->get_product_price( $product ), $cart_item, $cart_item_key );
+							?>
+							<li class="header-mini-cart-item" data-product-id="<?php echo esc_attr( $product_id ); ?>">
+								<div class="mini-cart-thumb">
+									<?php if ( $product_permalink ) : ?>
+										<a href="<?php echo esc_url( $product_permalink ); ?>">
+											<?php echo wp_kses_post( $thumbnail ); ?>
+										</a>
+									<?php else : ?>
+										<?php echo wp_kses_post( $thumbnail ); ?>
+									<?php endif; ?>
+								</div>
+								<div class="mini-cart-content">
+									<h4 class="mini-cart-product-name">
+										<?php if ( $product_permalink ) : ?>
+											<a href="<?php echo esc_url( $product_permalink ); ?>"><?php echo wp_kses_post( $product_name ); ?></a>
+										<?php else : ?>
+											<?php echo wp_kses_post( $product_name ); ?>
+										<?php endif; ?>
+									</h4>
+									<div class="mini-cart-meta">
+										<span class="mini-cart-quantity">&times;&nbsp;<?php echo esc_html( $cart_item['quantity'] ); ?></span>
+										<span class="mini-cart-price"><?php echo wp_kses_post( $product_price ); ?></span>
+									</div>
+								</div>
+								<div class="mini-cart-remove">
+									<?php
+									echo apply_filters(
+										'woocommerce_cart_item_remove_link',
+										sprintf(
+											'<a href="%s" class="mini-cart-remove-link" aria-label="%s" data-product_id="%s" data-cart_item_key="%s" data-product_sku="%s">&times;</a>',
+											esc_url( wc_get_cart_remove_url( $cart_item_key ) ),
+											esc_attr__( 'Remover este item', 'sg-juridico' ),
+											esc_attr( $product_id ),
+											esc_attr( $cart_item_key ),
+											esc_attr( $product->get_sku() )
+										),
+										$cart_item_key,
+										$cart_item
+									);
+									?>
+								</div>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				</div>
+				<div class="header-mini-cart-footer">
+					<div class="mini-cart-total">
+						<span class="label"><?php esc_html_e( 'Subtotal', 'sg-juridico' ); ?></span>
+						<span class="value"><?php echo wp_kses_post( $cart_total ); ?></span>
+					</div>
+					<div class="mini-cart-actions">
+						<a class="mini-cart-button mini-cart-view" href="<?php echo esc_url( wc_get_cart_url() ); ?>"><?php esc_html_e( 'Ver carrinho', 'sg-juridico' ); ?></a>
+						<a class="mini-cart-button mini-cart-checkout" href="<?php echo esc_url( wc_get_checkout_url() ); ?>"><?php esc_html_e( 'Finalizar compra', 'sg-juridico' ); ?></a>
+					</div>
+				</div>
+			<?php else : ?>
+				<div class="header-mini-cart-empty">
+					<p><?php esc_html_e( 'Seu carrinho está vazio.', 'sg-juridico' ); ?></p>
+					<a class="mini-cart-button mini-cart-view" href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'Ver produtos', 'sg-juridico' ); ?></a>
+				</div>
+			<?php endif; ?>
+		</div>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+function sg_render_header_cart() {
+	echo sg_get_header_cart_markup();
+}
+
+function sg_header_cart_fragments( $fragments ) {
 	if ( ! class_exists( 'WooCommerce' ) ) {
 		return $fragments;
 	}
 
-	ob_start();
-	$cart_count = WC()->cart->get_cart_contents_count();
-	$cart_url = wc_get_cart_url();
-	?>
-	<a href="<?php echo esc_url( $cart_url ); ?>" class="cart-icon" aria-label="<?php esc_attr_e( 'Carrinho de compras', 'sg-juridico' ); ?>">
-		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" fill="currentColor"/>
-			<path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" fill="currentColor"/>
-			<path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19C19.5304 16 20.0391 15.7893 20.4142 15.4142C20.7893 15.0391 21 14.5304 21 14H9.9L9.36 11H19L22 4H6.28L5.28 2H1V1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-		</svg>
-		<?php if ( $cart_count > 0 ) : ?>
-			<span class="cart-count"><?php echo esc_html( $cart_count ); ?></span>
-		<?php endif; ?>
-	</a>
-	<?php
-	$fragments['a.cart-icon'] = ob_get_clean();
-	
+	if ( null === WC()->cart && function_exists( 'wc_load_cart' ) ) {
+		wc_load_cart();
+	}
+
+	if ( ! WC()->cart ) {
+		return $fragments;
+	}
+
+	$fragments['.header-mini-cart-wrapper'] = sg_get_header_cart_markup();
+
 	return $fragments;
 }
-add_filter( 'woocommerce_add_to_cart_fragments', 'sg_cart_fragments_count' );
+add_filter( 'woocommerce_add_to_cart_fragments', 'sg_header_cart_fragments' );
 
 /**
  * Redirect non-logged users to my-account page

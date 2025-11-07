@@ -54,28 +54,14 @@
 					</div>
 				</div>
 
-				<!-- Botões de Acesso / CTA / Carrinho -->
-				<div class="header-actions">
-					<?php if ( is_user_logged_in() ) : ?>
-						<!-- Carrinho de Compras -->
-						<?php if ( class_exists( 'WooCommerce' ) ) : ?>
-							<?php
-							$cart_count = WC()->cart->get_cart_contents_count();
-							$cart_url = wc_get_cart_url();
-							?>
-							<a href="<?php echo esc_url( $cart_url ); ?>" class="cart-icon" aria-label="<?php esc_attr_e( 'Carrinho de compras', 'sg-juridico' ); ?>">
-								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" fill="currentColor"/>
-									<path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" fill="currentColor"/>
-									<path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19C19.5304 16 20.0391 15.7893 20.4142 15.4142C20.7893 15.0391 21 14.5304 21 14H9.9L9.36 11H19L22 4H6.28L5.28 2H1V1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-								</svg>
-								<?php if ( $cart_count > 0 ) : ?>
-									<span class="cart-count"><?php echo esc_html( $cart_count ); ?></span>
-								<?php endif; ?>
-							</a>
-						<?php endif; ?>
+			<!-- Botões de Acesso / CTA / Carrinho -->
+			<div class="header-actions">
+				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
+					<?php sg_render_header_cart(); ?>
+				<?php endif; ?>
 
-						<!-- Dropdown do Perfil -->
+				<?php if ( is_user_logged_in() ) : ?>
+					<!-- Dropdown do Perfil -->
 						<div class="user-profile-dropdown">
 							<button class="user-profile-btn" aria-expanded="false" aria-haspopup="true">
 								<?php echo get_avatar( get_current_user_id(), 32 ); ?>
@@ -109,20 +95,20 @@
 								</a>
 							</div>
 						</div>
-					<?php else : ?>
-						<!-- Usuário Não Logado -->
-						<a href="<?php echo esc_url( wp_login_url() ); ?>" class="btn-login">
-							<?php esc_html_e( 'Entrar', 'sg-juridico' ); ?>
-						</a>
-						<?php if ( class_exists( 'WooCommerce' ) && get_option( 'woocommerce_enable_myaccount_registration' ) === 'yes' ) : ?>
-							<a href="<?php echo esc_url( get_permalink( get_option( 'woocommerce_myaccount_page_id' ) ) ); ?>" class="btn-register">
-								<?php esc_html_e( 'Cadastrar', 'sg-juridico' ); ?>
-						</a>
-						<?php endif; ?>
-						<a href="<?php echo esc_url( get_permalink( get_option( 'woocommerce_myaccount_page_id' ) ) ); ?>" class="btn-cta">
-							<?php esc_html_e( 'Comece Agora', 'sg-juridico' ); ?>
-						</a>
+				<?php else : ?>
+					<!-- Usuário Não Logado -->
+					<a href="<?php echo esc_url( wp_login_url() ); ?>" class="btn-login">
+						<?php esc_html_e( 'Entrar', 'sg-juridico' ); ?>
+					</a>
+					<?php if ( class_exists( 'WooCommerce' ) && get_option( 'woocommerce_enable_myaccount_registration' ) === 'yes' ) : ?>
+						<a href="<?php echo esc_url( get_permalink( get_option( 'woocommerce_myaccount_page_id' ) ) ); ?>" class="btn-register">
+							<?php esc_html_e( 'Cadastrar', 'sg-juridico' ); ?>
+					</a>
 					<?php endif; ?>
+					<a href="<?php echo esc_url( get_permalink( get_option( 'woocommerce_myaccount_page_id' ) ) ); ?>" class="btn-cta">
+						<?php esc_html_e( 'Comece Agora', 'sg-juridico' ); ?>
+					</a>
+				<?php endif; ?>
 				</div>
 
 				<!-- Menu Mobile Toggle -->

@@ -1,0 +1,146 @@
+/* ==========================================
+   SINGLE PRODUCT - SG JURÍDICO
+   Carregado APÓS WooCommerce para sobrescrever estilos
+   ========================================== */
+
+/* ==========================================
+   1. WRAPPER DO SINGLE PRODUCT
+   ========================================== */
+/* Garantir que o wrapper não use grid conflitante */
+body.single-product .site-main-wrapper {
+	display: block !important;
+	max-width: 1200px !important;
+	margin: 0 auto !important;
+	padding: 24px !important; /* Padding coerente com o site */
+	grid-template-columns: none !important;
+}
+
+body.single-product .posts-container {
+	max-width: 100% !important;
+	width: 100% !important;
+	padding: 0 !important;
+}
+
+/* ==========================================
+   2. GALERIA DO WOOCOMMERCE
+   ========================================== */
+/* Garantir que imagens da galeria tenham proporção estável */
+body.single-product .woocommerce-product-gallery__image img {
+	width: 100% !important;
+	height: auto !important;
+	object-fit: cover !important;
+	aspect-ratio: 4 / 3 !important;
+	display: block !important;
+}
+
+/* Thumbnails da galeria */
+body.single-product .flex-control-thumbs {
+	display: flex !important;
+	gap: 10px !important;
+	margin-top: 15px !important;
+	flex-wrap: wrap !important;
+}
+
+body.single-product .flex-control-thumbs li {
+	flex: 0 0 auto !important;
+	width: 80px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	list-style: none !important;
+}
+
+body.single-product .flex-control-thumbs li img {
+	width: 100% !important;
+	height: auto !important;
+	aspect-ratio: 4 / 3 !important;
+	object-fit: cover !important;
+	cursor: pointer !important;
+	border: 2px solid transparent !important;
+	border-radius: 4px !important;
+	transition: all 0.3s ease !important;
+}
+
+body.single-product .flex-control-thumbs li img:hover,
+body.single-product .flex-control-thumbs li.flex-active img {
+	border-color: var(--sg-color-primary) !important;
+}
+
+/* ==========================================
+   3. PRODUTOS RELACIONADOS - 4 COLUNAS
+   ========================================== */
+/* Grid de 4 colunas no desktop para produtos relacionados e upsells */
+body.single-product .upsells.products ul.products,
+body.single-product .related.products ul.products {
+	display: grid !important;
+	grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+	gap: 24px !important;
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+}
+
+/* Remover larguras fixas dos cards relacionados */
+body.single-product .upsells.products ul.products li.product,
+body.single-product .related.products ul.products li.product {
+	width: auto !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	flex-basis: auto !important;
+	flex: auto !important;
+	float: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+/* Imagens dos produtos relacionados com proporção 4:3 */
+body.single-product .upsells.products ul.products li.product img,
+body.single-product .related.products ul.products li.product img {
+	width: 100% !important;
+	height: auto !important;
+	aspect-ratio: 4 / 3 !important;
+	object-fit: cover !important;
+	display: block !important;
+}
+
+/* ==========================================
+   4. BREAKPOINTS RESPONSIVOS
+   ========================================== */
+/* Tablet: 2 colunas */
+@media (min-width: 640px) and (max-width: 991px) {
+	body.single-product .upsells.products ul.products,
+	body.single-product .related.products ul.products {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		gap: 20px !important;
+	}
+}
+
+/* Mobile: 1 coluna */
+@media (max-width: 639px) {
+	body.single-product .site-main-wrapper {
+		padding: 15px !important;
+	}
+	
+	body.single-product .upsells.products ul.products,
+	body.single-product .related.products ul.products {
+		grid-template-columns: 1fr !important;
+		gap: 16px !important;
+	}
+}
+
+/* ==========================================
+   5. TÍTULOS E ESPAÇAMENTO
+   ========================================== */
+body.single-product .upsells h2,
+body.single-product .related h2 {
+	font-size: 24px;
+	font-weight: 700;
+	color: var(--sg-color-heading);
+	margin-bottom: 20px;
+	padding-bottom: 10px;
+	border-bottom: 2px solid var(--sg-color-border);
+}
+

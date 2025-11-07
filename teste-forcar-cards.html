@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Forçar Correção Cards - SG Jurídico</title>
+</head>
+<body>
+    <h1>Teste: Forçar Aplicação dos Estilos</h1>
+    <p><strong>INSTRUÇÕES:</strong></p>
+    <ol>
+        <li>Abra a página do produto</li>
+        <li>Pressione F12 para abrir o DevTools</li>
+        <li>Vá para a aba "Console"</li>
+        <li>Copie e cole o código abaixo</li>
+        <li>Pressione Enter</li>
+    </ol>
+    
+    <h2>CÓDIGO PARA COLAR NO CONSOLE:</h2>
+    <textarea id="codigo" style="width:100%; height:400px; font-family:monospace; font-size:12px;">
+// FORÇAR CORREÇÃO IMEDIATA - Cole este código no console (F12)
+
+console.log('🔧 FORÇANDO CORREÇÃO IMEDIATA...');
+
+// 1. Ocultar cards vazios/placeholder
+document.querySelectorAll('ul.products li').forEach(function(li) {
+    if (!li.classList.contains('product') || li.innerHTML.trim() === '') {
+        li.style.display = 'none';
+        console.log('❌ Card vazio ocultado');
+    }
+});
+
+// 2. Forçar grid de 4 colunas
+document.querySelectorAll('ul.products').forEach(function(ul) {
+    ul.style.setProperty('display', 'grid', 'important');
+    ul.style.setProperty('grid-template-columns', 'repeat(4, 1fr)', 'important');
+    ul.style.setProperty('gap', '18px', 'important');
+    ul.style.setProperty('width', '100%', 'important');
+    ul.style.setProperty('padding', '0', 'important');
+    ul.style.setProperty('margin', '0', 'important');
+});
+
+// 3. Garantir apenas 4 cards
+var cards = Array.from(document.querySelectorAll('ul.products li.product'));
+if (cards.length > 4) {
+    console.warn('⚠️ ' + cards.length + ' cards encontrados, limitando a 4...');
+    for (var i = 4; i < cards.length; i++) {
+        cards[i].style.display = 'none';
+    }
+    cards = cards.slice(0, 4);
+}
+
+// 4. Forçar estilos nos cards
+cards.forEach(function(card, i) {
+    // Layout do card
+    card.style.setProperty('display', 'flex', 'important');
+    card.style.setProperty('flex-direction', 'column', 'important');
+    card.style.setProperty('visibility', 'visible', 'important');
+    card.style.setProperty('opacity', '1', 'important');
+    card.style.setProperty('width', 'auto', 'important');
+    card.style.setProperty('min-width', '0', 'important');
+    card.style.setProperty('max-width', 'none', 'important');
+    card.style.setProperty('margin', '0', 'important');
+    card.style.setProperty('background', '#fff', 'important');
+    card.style.setProperty('border-radius', '8px', 'important');
+    card.style.setProperty('box-shadow', '0 2px 8px rgba(0,0,0,0.08)', 'important');
+    
+    // Botões - COR CYAN #5CE1E6
+    card.querySelectorAll('.button, a.button').forEach(function(btn) {
+        btn.style.setProperty('background-color', '#5CE1E6', 'important');
+        btn.style.setProperty('background', '#5CE1E6', 'important');
+        btn.style.setProperty('color', '#000', 'important');
+        btn.style.setProperty('border', 'none', 'important');
+        btn.style.setProperty('padding', '10px 20px', 'important');
+        btn.style.setProperty('border-radius', '6px', 'important');
+        btn.style.setProperty('font-weight', '600', 'important');
+        btn.style.setProperty('text-decoration', 'none', 'important');
+    });
+    
+    // Título em 2 linhas
+    var title = card.querySelector('.woocommerce-loop-product__title, h2');
+    if (title) {
+        title.style.setProperty('display', '-webkit-box', 'important');
+        title.style.setProperty('-webkit-line-clamp', '2', 'important');
+        title.style.setProperty('-webkit-box-orient', 'vertical', 'important');
+        title.style.setProperty('overflow', 'hidden', 'important');
+        title.style.setProperty('text-overflow', 'ellipsis', 'important');
+        title.style.setProperty('line-height', '1.4', 'important');
+        title.style.setProperty('font-size', '15px', 'important');
+        title.style.setProperty('min-height', '2.8em', 'important');
+        title.style.setProperty('max-height', '2.8em', 'important');
+        title.style.setProperty('padding', '0 12px', 'important');
+    }
+});
+
+console.log('✅ SUCESSO: ' + cards.length + ' cards em 4 colunas');
+console.log('✅ Botões: #5CE1E6 (cyan)');
+console.log('✅ Títulos: 2 linhas');
+    </textarea>
+    
+    <br><br>
+    <button onclick="copiarCodigo()" style="padding:15px 30px; font-size:16px; background:#5CE1E6; color:#000; border:none; border-radius:6px; cursor:pointer; font-weight:600;">
+        📋 COPIAR CÓDIGO
+    </button>
+    
+    <script>
+        function copiarCodigo() {
+            var textarea = document.getElementById('codigo');
+            textarea.select();
+            document.execCommand('copy');
+            alert('✅ Código copiado! Cole no console (F12) da página do produto.');
+        }
+    </script>
+    
+    <hr>
+    <h2>Resultado Esperado:</h2>
+    <ul>
+        <li>✅ 4 cards lado a lado em uma linha</li>
+        <li>✅ Botões na cor CYAN (#5CE1E6)</li>
+        <li>✅ Títulos em 2 linhas logo abaixo da imagem</li>
+        <li>✅ Sem card em branco/placeholder</li>
+        <li>✅ Grid: repeat(4, 1fr) com gap de 18px</li>
+    </ul>
+</body>
+</html>
+
