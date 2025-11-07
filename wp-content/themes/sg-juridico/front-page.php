@@ -106,7 +106,7 @@ get_header();
 											</div>
 										</a>
 										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
-											Comprar
+											Ver detalhes
 										</a>
 									</li>
 								<?php endforeach; ?>
@@ -145,7 +145,7 @@ get_header();
 											</div>
 										</a>
 										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
-											Comprar
+											Ver detalhes
 										</a>
 									</li>
 								<?php endforeach; ?>
@@ -184,7 +184,7 @@ get_header();
 											</div>
 										</a>
 										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
-											Comprar
+											Ver detalhes
 										</a>
 									</li>
 								<?php endforeach; ?>
@@ -273,7 +273,7 @@ get_header();
 										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>
 											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">
 												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">
-													Comprar
+													Ver detalhes
 												</button>
 											</form>
 										<?php endif; ?>
@@ -333,7 +333,7 @@ get_header();
 										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>
 											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">
 												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">
-													Comprar
+													Ver detalhes
 												</button>
 											</form>
 										<?php endif; ?>
