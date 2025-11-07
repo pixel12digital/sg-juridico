@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SG_VERSION', '1.0.0' );
+define( 'SG_VERSION', '1.0.1' );
 
 /**
  * Setup theme defaults
