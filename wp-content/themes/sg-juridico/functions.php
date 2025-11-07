@@ -1421,9 +1421,25 @@ function sg_scripts() {
 		wp_enqueue_script( 'comment-reply' );
 	}
 
-	// Estilos do layout da loja e filtros (WooCommerce)
-	if ( class_exists( 'WooCommerce' ) && ( is_shop() || is_product_taxonomy() || is_product_category() || is_product_tag() ) ) {
-		wp_enqueue_style( 'sg-shop-filters', get_template_directory_uri() . '/css/shop-filters.css', array(), SG_VERSION );
+	// Estilos do layout da loja e filtros (WooCommerce) - carregar DEPOIS do WooCommerce
+	// Incluir TODOS os casos possíveis de páginas de produtos
+	if ( class_exists( 'WooCommerce' ) ) {
+		$is_shop_page = (
+			is_shop() || 
+			is_product_taxonomy() || 
+			is_product_category() || 
+			is_product_tag() || 
+			is_post_type_archive( 'product' ) ||
+			is_page( 'materiais' ) ||
+			( is_page() && strpos( strtolower( get_the_title() ), 'materiais' ) !== false )
+		);
+		
+		if ( $is_shop_page ) {
+			// Usar timestamp para forçar reload e evitar cache
+			$shop_css_file = get_template_directory() . '/css/shop-filters.css';
+			$shop_css_version = file_exists( $shop_css_file ) ? filemtime( $shop_css_file ) : time();
+			wp_enqueue_style( 'sg-shop-filters', get_template_directory_uri() . '/css/shop-filters.css', array( 'woocommerce-general', 'woocommerce-layout' ), $shop_css_version, 'all' );
+		}
 	}
 
 	// Carregar estilização específica da página Contato
@@ -1457,7 +1473,18 @@ function sg_override_woocommerce_sidebar() {
 		return;
 	}
 
-	if ( is_shop() || is_product_taxonomy() || is_product_category() || is_product_tag() ) {
+	// Incluir TODOS os casos possíveis de páginas de produtos
+	$is_shop_page = (
+		is_shop() || 
+		is_product_taxonomy() || 
+		is_product_category() || 
+		is_product_tag() || 
+		is_post_type_archive( 'product' ) ||
+		is_page( 'materiais' ) ||
+		( is_page() && strpos( strtolower( get_the_title() ), 'materiais' ) !== false )
+	);
+	
+	if ( $is_shop_page ) {
 		// Remover sidebar padrão
 		remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
 
@@ -1491,6 +1518,202 @@ function sg_override_woocommerce_sidebar() {
 	}
 }
 add_action( 'wp', 'sg_override_woocommerce_sidebar' );
+
+/**
+ * Script para garantir que o grid seja aplicado e remover larguras fixas
+ */
+function sg_force_shop_grid() {
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return;
+	}
+	
+	// Incluir TODOS os casos possíveis de páginas de produtos
+	$is_shop_page = (
+		is_shop() || 
+		is_product_taxonomy() || 
+		is_product_category() || 
+		is_product_tag() || 
+		is_post_type_archive( 'product' ) ||
+		is_page( 'materiais' ) ||
+		( is_page() && strpos( strtolower( get_the_title() ), 'materiais' ) !== false )
+	);
+	
+	if ( $is_shop_page ) {
+		?>
+		<script>
+		(function() {
+			var isApplying = false;
+			
+			function forceShopGrid() {
+				if (isApplying) return;
+				isApplying = true;
+				
+				// 1. REMOVER LISTAS VAZIAS DO DOM
+				var allLists = document.querySelectorAll('ul.products');
+				var productsList = null;
+				
+				allLists.forEach(function(list) {
+					var items = list.querySelectorAll('li.product');
+					if (items.length === 0) {
+						// Remover lista vazia completamente
+						try {
+							list.remove();
+						} catch(e) {
+							list.style.display = 'none';
+						}
+					} else if (!productsList) {
+						productsList = list; // Primeira lista com produtos
+					}
+				});
+				
+				if (!productsList) {
+					isApplying = false;
+					return;
+				}
+				
+				// 2. LIBERAR TODOS OS CONTAINERS PAIS
+				var containers = [
+					'.site-main-wrapper',
+					'.site-main .container', 
+					'.posts-container',
+					'.sg-shop-content',
+					'.sg-shop-layout',
+					'.woocommerce'
+				];
+				
+				containers.forEach(function(selector) {
+					var el = document.querySelector(selector);
+					if (el && !el.classList.contains('shop-sidebar')) {
+						el.style.setProperty('max-width', selector === '.sg-shop-layout' ? '1200px' : '100%', 'important');
+						el.style.setProperty('width', '100%', 'important');
+						if (selector === '.site-main-wrapper') {
+							el.style.setProperty('display', 'block', 'important');
+						}
+					}
+				});
+				
+				// 3. APLICAR GRID NA LISTA REAL
+				var windowWidth = window.innerWidth;
+				productsList.style.setProperty('display', 'grid', 'important');
+				
+				if (windowWidth >= 992) {
+					productsList.style.setProperty('grid-template-columns', 'repeat(3, minmax(0, 1fr))', 'important');
+					productsList.style.setProperty('gap', '24px', 'important');
+				} else if (windowWidth >= 768) {
+					productsList.style.setProperty('grid-template-columns', 'repeat(2, minmax(0, 1fr))', 'important');
+					productsList.style.setProperty('gap', '20px', 'important');
+				} else {
+					productsList.style.setProperty('grid-template-columns', '1fr', 'important');
+					productsList.style.setProperty('gap', '16px', 'important');
+				}
+				
+				productsList.style.setProperty('width', '100%', 'important');
+				productsList.style.setProperty('justify-content', 'space-between', 'important');
+				
+				// 4. REMOVER LARGURAS FIXAS DOS CARDS
+				var products = productsList.querySelectorAll('li.product');
+				products.forEach(function(product) {
+					// Limpar style inline completamente
+					product.removeAttribute('style');
+					
+					// Forçar valores corretos
+					product.style.setProperty('width', 'auto', 'important');
+					product.style.setProperty('max-width', '300px', 'important');
+					product.style.setProperty('min-width', '0', 'important');
+					product.style.setProperty('flex', '1 1 auto', 'important');
+					product.style.setProperty('flex-basis', 'auto', 'important');
+					product.style.setProperty('float', 'none', 'important');
+					product.style.setProperty('box-sizing', 'border-box', 'important');
+					product.style.setProperty('margin', '0', 'important');
+					product.style.setProperty('padding', '0', 'important');
+				});
+				
+				isApplying = false;
+			}
+			
+			// 5. PROTEGER CONTRA SCRIPTS QUE REAPLIQUEM LARGURAS
+			function setupProtection() {
+				var allLists = document.querySelectorAll('ul.products');
+				var productsList = null;
+				
+				for (var i = 0; i < allLists.length; i++) {
+					var items = allLists[i].querySelectorAll('li.product');
+					if (items.length > 0) {
+						productsList = allLists[i];
+						break;
+					}
+				}
+				
+				if (!productsList) return;
+				
+				// MutationObserver para interceptar mudanças inline
+				var products = productsList.querySelectorAll('li.product');
+				products.forEach(function(product) {
+					var observer = new MutationObserver(function(mutations) {
+						mutations.forEach(function(mutation) {
+							if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+								var style = product.getAttribute('style') || '';
+								// Detectar largura fixa pequena (ex: 171px)
+								if (/width\s*:\s*[12]\d{2}px/i.test(style) || 
+								    /flex-basis\s*:\s*[12]\d{2}px/i.test(style)) {
+									setTimeout(function() {
+										product.style.setProperty('width', 'auto', 'important');
+										product.style.setProperty('max-width', '300px', 'important');
+										product.style.setProperty('flex-basis', 'auto', 'important');
+									}, 0);
+								}
+							}
+						});
+					});
+					
+					observer.observe(product, {
+						attributes: true,
+						attributeFilter: ['style']
+					});
+				});
+			}
+			
+			// EXECUTAR
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', function() {
+					forceShopGrid();
+					setTimeout(setupProtection, 300);
+				});
+			} else {
+				forceShopGrid();
+				setTimeout(setupProtection, 300);
+			}
+			
+			// Executar múltiplas vezes para garantir aplicação
+			setTimeout(forceShopGrid, 100);
+			setTimeout(forceShopGrid, 500);
+			setTimeout(forceShopGrid, 1000);
+			setTimeout(setupProtection, 1500);
+			
+			// Reaplicar em resize
+			var resizeTimeout;
+			window.addEventListener('resize', function() {
+				clearTimeout(resizeTimeout);
+				resizeTimeout = setTimeout(forceShopGrid, 250);
+			});
+			
+			// Reaplicar em mudanças do DOM (AJAX)
+			var domObserver = new MutationObserver(function() {
+				setTimeout(forceShopGrid, 100);
+			});
+			
+			domObserver.observe(document.body, {
+				childList: true,
+				subtree: true
+			});
+			
+			console.log('✓ Shop Grid Fix carregado');
+		})();
+		</script>
+		<?php
+	}
+}
+add_action( 'wp_footer', 'sg_force_shop_grid', 999 );
 
 /**
  * Forçar uso do template "Minha Conta (Sidebar)" quando estiver na página Minha Conta

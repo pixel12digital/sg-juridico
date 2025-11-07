@@ -1,20 +1,298 @@
-/* Garantir que os itens usem toda a largura da coluna do grid */
-.sg-shop-content ul.products li.product { width: auto !important; max-width: none !important; float: none !important; margin: 0 !important; }
-.sg-shop-content ul.products li.product .woocommerce-LoopProduct-link { display:block; }
-/* Garantir que imagens e figuras não estorem a coluna */
-.sg-shop-content ul.products li.product img { max-width:100%; height:auto; display:block; }
-.sg-shop-content ul.products li.product a { min-width:0; }
-.sg-shop-layout { display:flex; gap:32px; align-items:flex-start; padding:0 20px; }
-.sg-shop-content { flex:1; min-width:0; padding:8px 20px; max-width:1160px; margin:0 auto; }
+/* ==========================================
+   SHOP GRID FIX - SG JURÍDICO
+   Ordem de prioridade: este CSS deve carregar DEPOIS do WooCommerce
+   ========================================== */
 
-/* largura máxima do conteúdo para manter alinhamento limpo */
+/* ==========================================
+   1. LIBERAR CONTAINERS NA LOJA
+   ========================================== */
+/* Garantir que containers pais não limitem largura */
+body.woocommerce-shop .site-main-wrapper,
+body.post-type-archive-product .site-main-wrapper,
+body.tax-product_cat .site-main-wrapper,
+body.tax-product_tag .site-main-wrapper {
+	max-width: 100% !important;
+	width: 100% !important;
+	display: block !important;
+	grid-template-columns: none !important;
+}
+
+body.woocommerce-shop .site-main .container,
+body.post-type-archive-product .site-main .container,
+body.tax-product_cat .site-main .container,
+body.tax-product_tag .site-main .container {
+	max-width: 100% !important;
+	width: 100% !important;
+	padding: 0 20px !important;
+}
+
+body.woocommerce-shop .posts-container,
+body.post-type-archive-product .posts-container,
+body.tax-product_cat .posts-container,
+body.tax-product_tag .posts-container {
+	max-width: 100% !important;
+	width: 100% !important;
+	flex: none !important;
+	min-width: 0 !important;
+}
+
+/* ==========================================
+   2. LAYOUT: SIDEBAR + CONTEÚDO
+   ========================================== */
+.sg-shop-layout { 
+	display: flex !important; 
+	gap: 32px; 
+	align-items: flex-start; 
+	padding: 0 !important; 
+	max-width: 1200px !important;
+	margin: 0 auto !important;
+	width: 100% !important;
+}
+
+.shop-sidebar { 
+	background: #fff; 
+	border: 1px solid #e5e7eb; 
+	border-radius: 8px; 
+	padding: 16px; 
+	width: 280px; 
+	flex-shrink: 0;
+	color: #000; 
+	position: sticky; 
+	top: 88px; 
+}
+.shop-sidebar, .shop-sidebar * { color: #000; }
+
+.sg-shop-content { 
+	flex: 1 1 auto !important; 
+	min-width: 0 !important; 
+	max-width: none !important;
+	padding: 0 24px !important; /* Padding para alinhar com header */
+	width: 100% !important;
+}
+
+/* Garantir que wrappers internos do WooCommerce não limitem */
+.sg-shop-content .woocommerce,
 .sg-shop-content > .woocommerce,
 .sg-shop-content > .products-wrap,
-.sg-shop-content .woocommerce { max-width: 1160px; margin: 0 auto; width: 100%; }
+body.woocommerce-shop .woocommerce,
+body.post-type-archive-product .woocommerce,
+body.tax-product_cat .woocommerce,
+body.tax-product_tag .woocommerce {
+	max-width: 100% !important;
+	width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
 
-.shop-sidebar { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:16px; width:260px; color:#000; position:sticky; top:88px; }
-.shop-sidebar, .shop-sidebar * { color:#000; }
+/* ==========================================
+   3. GRADE DE PRODUTOS: 3 COLUNAS NO DESKTOP
+   ========================================== */
+/* Aplicar grid apenas na lista COM produtos */
+.sg-shop-content ul.products,
+.sg-shop-content ul.products.columns-3,
+.sg-shop-content ul.products.columns-4,
+.sg-shop-content .woocommerce ul.products,
+.woocommerce .sg-shop-content ul.products,
+body.woocommerce-shop .sg-shop-content ul.products,
+body.post-type-archive-product .sg-shop-content ul.products,
+body.tax-product_cat .sg-shop-content ul.products,
+body.tax-product_tag .sg-shop-content ul.products { 
+	display: grid !important; 
+	grid-template-columns: repeat(3, minmax(0, 1fr)) !important; 
+	gap: 24px !important; 
+	width: 100% !important; 
+	max-width: none !important;
+	margin: 0 !important; 
+	padding: 0 !important; 
+	list-style: none !important;
+	box-sizing: border-box !important;
+	justify-content: space-between !important;
+}
 
+/* Ocultar listas vazias (placeholders) */
+ul.products:empty,
+ul.products:not(:has(li.product)) {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+/* Garantir que apenas lista COM produtos seja visível */
+ul.products:has(li.product),
+ul.products:not(:empty) {
+	display: grid !important;
+}
+
+/* Remover pseudo-elementos de clearfix que viram 1º item do grid */
+.sg-shop-content ul.products::before,
+.sg-shop-content ul.products::after,
+.sg-shop-content .woocommerce ul.products::before,
+.sg-shop-content .woocommerce ul.products::after,
+.woocommerce .sg-shop-content ul.products::before,
+.woocommerce .sg-shop-content ul.products::after { 
+	content: none !important; 
+	display: none !important; 
+}
+
+/* ==========================================
+   4. NEUTRALIZAR LEGADOS NOS CARDS
+   ========================================== */
+/* Remover width fixa, max-width fixa, flex-basis fixa e float:left */
+.sg-shop-content ul.products li.product,
+.sg-shop-content ul.products.columns-3 li.product,
+.sg-shop-content ul.products.columns-4 li.product,
+.sg-shop-content .woocommerce ul.products li.product,
+.woocommerce .sg-shop-content ul.products li.product,
+body.woocommerce-shop .sg-shop-content ul.products li.product,
+body.post-type-archive-product .sg-shop-content ul.products li.product,
+body.tax-product_cat .sg-shop-content ul.products li.product,
+body.tax-product_tag .sg-shop-content ul.products li.product,
+body.woocommerce-shop ul.products li.product,
+body.post-type-archive-product ul.products li.product,
+body.tax-product_cat ul.products li.product,
+body.tax-product_tag ul.products li.product,
+.woocommerce ul.products li.product,
+.woocommerce.archive ul.products li.product,
+.woocommerce-page ul.products li.product { 
+	/* Remover larguras fixas */
+	width: auto !important; 
+	max-width: 300px !important; /* Limite para alinhar com header */
+	min-width: 0 !important;
+	
+	/* Remover flex-basis fixo */
+	flex-basis: auto !important;
+	flex-grow: 1 !important;
+	flex-shrink: 1 !important;
+	flex: 1 1 auto !important;
+	
+	/* Remover float legado */
+	float: none !important; 
+	
+	/* Garantir box-sizing correto */
+	box-sizing: border-box !important;
+	
+	/* Reset de margens/padding */
+	margin: 0 !important; 
+	padding: 0 !important;
+	
+	/* Layout interno */
+	display: flex !important;
+	flex-direction: column !important;
+}
+
+.sg-shop-content ul.products li.product .woocommerce-LoopProduct-link { 
+	display: flex !important; 
+	flex-direction: column !important;
+	width: 100% !important;
+	height: 100% !important;
+	text-decoration: none;
+}
+
+/* ==========================================
+   5. IMAGENS DOS CARDS
+   ========================================== */
+/* Proporção 3:4 com object-fit: cover */
+.sg-shop-content ul.products li.product .woocommerce-loop-product__link img,
+.sg-shop-content ul.products li.product img { 
+	max-width: 100% !important; 
+	width: 100% !important;
+	height: auto !important;
+	aspect-ratio: 3 / 4 !important;
+	object-fit: cover !important;
+	display: block !important; 
+}
+
+.sg-shop-content ul.products li.product a { 
+	min-width: 0 !important; 
+	width: 100% !important;
+}
+
+/* Garantir que cards tenham altura consistente */
+.sg-shop-content ul.products li.product .product-info {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	width: 100%;
+	padding: 15px 0;
+}
+
+/* ==========================================
+   6. BREAKPOINTS RESPONSIVOS
+   ========================================== */
+/* Tablet: 2 colunas (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) { 
+	.sg-shop-content ul.products,
+	.sg-shop-content ul.products.columns-3,
+	.sg-shop-content ul.products.columns-4,
+	.sg-shop-content .woocommerce ul.products,
+	.woocommerce .sg-shop-content ul.products,
+	body.woocommerce-shop .sg-shop-content ul.products,
+	body.post-type-archive-product .sg-shop-content ul.products,
+	body.tax-product_cat .sg-shop-content ul.products,
+	body.tax-product_tag .sg-shop-content ul.products { 
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important; 
+		gap: 20px !important; 
+	} 
+}
+
+/* Mobile: 1 coluna (≤767px) */
+@media (max-width: 767px) { 
+	.sg-shop-content ul.products,
+	.sg-shop-content ul.products.columns-3,
+	.sg-shop-content ul.products.columns-4,
+	.sg-shop-content .woocommerce ul.products,
+	.woocommerce .sg-shop-content ul.products,
+	body.woocommerce-shop .sg-shop-content ul.products,
+	body.post-type-archive-product .sg-shop-content ul.products,
+	body.tax-product_cat .sg-shop-content ul.products,
+	body.tax-product_tag .sg-shop-content ul.products { 
+		grid-template-columns: 1fr !important; 
+		gap: 16px !important; 
+	} 
+}
+
+/* ==========================================
+   7. TOOLBAR E ELEMENTOS DE SUPORTE
+   ========================================== */
+.sg-shop-toolbar { 
+	position: sticky; 
+	top: 0; 
+	z-index: 5; 
+	background: #fff; 
+	padding: 12px 0; 
+	margin-bottom: 16px; 
+	border-bottom: 1px solid #e5e7eb; 
+	display: flex; 
+	gap: 16px; 
+	flex-wrap: wrap; 
+	align-items: center; 
+	max-width: 1200px; 
+	margin-left: auto; 
+	margin-right: auto; 
+}
+.sg-shop-toolbar .shop-title { font-size: 20px; margin: 0; }
+.sg-shop-toolbar .woocommerce-result-count { margin-left: auto; }
+.sg-shop-toolbar .woocommerce-ordering { margin: 0 0 0 12px; }
+
+/* Header de produtos */
+.woocommerce-products-header { margin-bottom: 8px; padding-bottom: 0; }
+.woocommerce-products-header h1 { margin: 0 0 4px; }
+.woocommerce-products-header .term-description,
+.woocommerce-products-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+
+/* Remover margens herdadas */
+.woocommerce.archive ul.products,
+.tax-product_cat ul.products,
+.tax-product_tag ul.products { 
+	margin-top: 0; 
+}
+
+/* ==========================================
+   8. FILTROS DA SIDEBAR
+   ========================================== */
 .shop-filters-toggle {
 	display: none;
 	width: 100%;
@@ -28,94 +306,66 @@
 }
 
 .shop-filters .widget + .widget { margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee; }
-.shop-filters .widget-title { font-size: 15px; margin: 0 0 8px; color:#000; }
-.shop-filters .price_slider_amount .button { background:#5CE1E6; color:#000; border-radius:4px; border:none; }
-.shop-filters a { color:#000; }
-.shop-filters a:hover { color:#000; text-decoration:underline; }
-.shop-filters .woocommerce-widget-layered-nav-list { max-height: 260px; overflow:auto; }
+.shop-filters .widget-title { font-size: 15px; margin: 0 0 8px; color: #000; }
+.shop-filters .price_slider_amount .button { background: #5CE1E6; color: #000; border-radius: 4px; border: none; }
+.shop-filters a { color: #000; }
+.shop-filters a:hover { color: #000; text-decoration: underline; }
+.shop-filters .woocommerce-widget-layered-nav-list { max-height: 260px; overflow: auto; }
 
-.shop-clear-filters { display:inline-block; margin:0 0 12px; color:#F7931E; font-weight:600; }
+.shop-clear-filters { display: inline-block; margin: 0 0 12px; color: #F7931E; font-weight: 600; }
 .shop-clear-filters:hover { text-decoration: underline; }
 
-/* Botão "Limpar filtros" (sempre visível) */
 .shop-clear-btn {
-	display:inline-block;
+	display: inline-block;
 	padding: 8px 12px;
 	border-radius: 6px;
-	background:#5CE1E6;
-	color:#000;
-	font-weight:700;
-	text-decoration:none;
-	border:1px solid #5CE1E6;
+	background: #5CE1E6;
+	color: #000;
+	font-weight: 700;
+	text-decoration: none;
+	border: 1px solid #5CE1E6;
 	margin: 0 0 12px;
 }
-.shop-clear-btn:hover { background:#4fd6db; border-color:#4fd6db; }
+.shop-clear-btn:hover { background: #4fd6db; border-color: #4fd6db; }
 
-/* Listas da barra lateral com melhor legibilidade */
-.shop-filters ul { list-style:none; margin:0; padding:0; }
-.shop-filters li { margin:6px 0; line-height:1.5; }
-.shop-filters .count { opacity:.7; margin-left:6px; }
+.shop-filters ul { list-style: none; margin: 0; padding: 0; }
+.shop-filters li { margin: 6px 0; line-height: 1.5; }
+.shop-filters .count { opacity: 0.7; margin-left: 6px; }
 
-/* Remover hacks de margem — o layout é controlado pela .sg-shop-layout */
-.woocommerce.archive ul.products,
-.tax-product_cat ul.products,
-.tax-product_tag ul.products { margin-top: 0; }
-
-/* Grid de produtos com gap consistente em telas modernas */
-.sg-shop-content ul.products,
-.sg-shop-content .woocommerce ul.products,
-.woocommerce .sg-shop-content ul.products { gap:28px; display:grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); width:100%; margin:0; padding:0; list-style:none; }
-/* Remover pseudo-elementos de clearfix que viram 1º item do grid */
-.sg-shop-content ul.products::before,
-.sg-shop-content ul.products::after,
-.sg-shop-content .woocommerce ul.products::before,
-.sg-shop-content .woocommerce ul.products::after,
-.woocommerce .sg-shop-content ul.products::before,
-.woocommerce .sg-shop-content ul.products::after { content: none !important; display: none !important; }
-@media (max-width: 900px) { .sg-shop-content ul.products { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .sg-shop-content ul.products { grid-template-columns: 1fr; } }
-@media (max-width: 900px) { .sg-shop-content ul.products { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .sg-shop-content ul.products { grid-template-columns: 1fr; } }
-
-/* Toolbar sticky */
-.sg-shop-toolbar { position: sticky; top: 0; z-index: 5; background:#fff; padding:12px 0; margin-bottom:16px; border-bottom:1px solid #e5e7eb; display:flex; gap:16px; flex-wrap:wrap; align-items:center; max-width:1200px; margin-left:auto; margin-right:auto; }
-.sg-shop-toolbar { margin-bottom: 8px; }
-.sg-shop-toolbar .shop-title { margin: 0; }
-
-/* Header de produtos: título + subtítulo colados */
-.woocommerce-products-header { margin-bottom: 8px; padding-bottom: 0; }
-.woocommerce-products-header h1 { margin: 0 0 4px; }
-.woocommerce-products-header .term-description,
-.woocommerce-products-header h2 { margin: 0; font-size: 16px; font-weight: 600; }
-/* Aproximar imediatamente os produtos do cabeçalho */
-.woocommerce-products-header + .woocommerce-result-count { margin-top: 0; }
-.woocommerce-products-header + .products,
-.woocommerce-products-header + .woocommerce-notices-wrapper + .products { margin-top: 8px !important; }
-.sg-shop-toolbar .shop-title { font-size:20px; margin:0; }
-.sg-shop-toolbar .woocommerce-result-count { margin-left:auto; }
-.sg-shop-toolbar .woocommerce-ordering { margin:0 0 0 12px; }
-
-/* Cores do slider de preço (WooCommerce) */
+/* Cores do slider de preço */
 .widget_price_filter .ui-slider .ui-slider-range { background: var(--sg-color-primary) !important; }
 .widget_price_filter .ui-slider .ui-slider-handle { background: var(--sg-color-primary) !important; border-color: var(--sg-color-primary) !important; }
-.widget_price_filter .price_slider_wrapper .ui-widget-content { background:#e5e7eb !important; }
-/* reforçar cor do header/track do slider de jQuery UI, que usa .ui-widget-header */
+.widget_price_filter .price_slider_wrapper .ui-widget-content { background: #e5e7eb !important; }
 .widget_price_filter .ui-widget-header { background: var(--sg-color-primary) !important; border-color: var(--sg-color-primary) !important; }
-/* botão Filtrar */
 .widget_price_filter .price_slider_amount .button { background: var(--sg-color-primary) !important; border-color: var(--sg-color-primary) !important; color: var(--sg-color-button-text) !important; }
 
-/* Mobile: off-canvas simples */
-@media (max-width: 992px) {
+/* ==========================================
+   9. RESPONSIVO (≤991px)
+   ========================================== */
+@media (max-width: 991px) {
 	.shop-filters-toggle { display: inline-block; }
-	.sg-shop-layout { display:block; }
-	.shop-sidebar { position: relative; width:auto; margin-right:0; }
-	.shop-filters { display:none; margin-top: 10px; }
-	.shop-filters.is-open { display:block; }
-
-	.woocommerce.archive ul.products,
-	.tax-product_cat ul.products,
-	.tax-product_tag ul.products { }
+	.sg-shop-layout { 
+		display: block !important; 
+		flex-direction: column;
+		padding: 0 20px;
+	}
+	.shop-sidebar { 
+		position: relative; 
+		width: 100%; 
+		margin-right: 0; 
+		top: 0;
+		margin-bottom: 20px;
+	}
+	.shop-filters { 
+		display: none; 
+		margin-top: 10px; 
+	}
+	.shop-filters.is-open { 
+		display: block; 
+	}
+	.sg-shop-content {
+		padding: 0 !important;
+		width: 100% !important;
+	}
 	.sg-shop-toolbar { position: static; }
 }
-
-

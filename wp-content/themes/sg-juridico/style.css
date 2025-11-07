@@ -3135,8 +3135,8 @@ body.home.blog #secondary.widget-area {
 	}
 }
 
-/* WooCommerce Products on Home */
-.site-main .woocommerce ul.products {
+/* WooCommerce Products on Home - apenas para páginas que NÃO são loja */
+.site-main:not(.sg-shop-content) .woocommerce ul.products {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 	gap: 30px;
@@ -4060,9 +4060,7 @@ aside#secondary [class*="Arquivo"] {
 }
 
 /* Ocultar seção "Compre por categorias" do conteúdo - agora está no banner */
-.posts-container .entry-content figure a[href*="categoria-produto"],
-.posts-container .woocommerce ul.products.columns-3,
-.posts-container .woocommerce ul.products.columns-4 {
+.posts-container .entry-content figure a[href*="categoria-produto"] {
     display: none !important;
 }
 
@@ -5085,13 +5083,13 @@ body.woocommerce-account .woocommerce .woocommerce-MyAccount-content ul li:last-
 		gap: 15px;
 	}
 	
-	/* Loja: apenas 2 produtos por linha em mobile */
-	body.woocommerce-shop .woocommerce ul.products,
-	body.post-type-archive-product .woocommerce ul.products,
-	body.tax-product_cat .woocommerce ul.products,
-	body.woocommerce-page .woocommerce ul.products,
-	.woocommerce.archive ul.products,
-	.site-main .woocommerce ul.products {
+	/* Loja: apenas 2 produtos por linha em mobile - mas não sobrescrever .sg-shop-content */
+	body.woocommerce-shop:not(.sg-shop-content) .woocommerce ul.products,
+	body.post-type-archive-product:not(.sg-shop-content) .woocommerce ul.products,
+	body.tax-product_cat:not(.sg-shop-content) .woocommerce ul.products,
+	body.woocommerce-page:not(.sg-shop-content) .woocommerce ul.products,
+	.woocommerce.archive:not(.sg-shop-content) ul.products,
+	.site-main:not(.sg-shop-content) .woocommerce ul.products {
 		grid-template-columns: repeat(2, 1fr) !important;
 		gap: 15px;
 	}
