@@ -1,36 +1,44 @@
+# BEGIN LSCACHE
+## LITESPEED WP CACHE PLUGIN - Do not edit the contents of this block! ##
+<IfModule LiteSpeed>
+RewriteEngine on
+CacheLookup on
+RewriteRule .* - [E=Cache-Control:no-autoflush]
+RewriteRule litespeed/debug/.*\.log$ - [F,L]
+RewriteRule \.litespeed_conf\.dat - [F,L]
+
+### marker ASYNC start ###
+RewriteCond %{REQUEST_URI} /wp-admin/admin-ajax\.php
+RewriteCond %{QUERY_STRING} action=async_litespeed
+RewriteRule .* - [E=noabort:1]
+### marker ASYNC end ###
+
+### marker DROPQS start ###
+CacheKeyModify -qs:fbclid
+CacheKeyModify -qs:gclid
+CacheKeyModify -qs:utm*
+CacheKeyModify -qs:_ga
+### marker DROPQS end ###
+
+</IfModule>
+## LITESPEED WP CACHE PLUGIN - Do not edit the contents of this block! ##
+# END LSCACHE
+# BEGIN NON_LSCACHE
+## LITESPEED WP CACHE PLUGIN - Do not edit the contents of this block! ##
+## LITESPEED WP CACHE PLUGIN - Do not edit the contents of this block! ##
+# END NON_LSCACHE
 # BEGIN WordPress
+# As diretrizes (linhas) entre "BEGIN WordPress" e "END WordPress" são
+# geradas dinamicamente e só devem ser modificadas através de filtros do WordPress.
+# Quaisquer alterações nas diretivas entre esses marcadores serão sobrescritas.
 <IfModule mod_rewrite.c>
 RewriteEngine On
-
-# SEGURANÇA: Bloquear acesso a arquivos de debug/teste em produção
-RewriteRule ^(teste-|debug-|fix-|test-|verificar-|phpinfo|ok\.php|simple) - [F,L]
-
-# SEGURANÇA: Bloquear acesso a arquivos de backup
-RewriteRule \.(bak|backup|old|sql|zip)$ - [F,L]
-
-# CRÍTICO: Não processar index.php novamente
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /sg-juridico/
 RewriteRule ^index\.php$ - [L]
-
-# CRÍTICO: Servir arquivos que existem fisicamente SEM redirecionamento
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-
-# CRÍTICO: Servir diretórios que existem fisicamente SEM redirecionamento  
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
-
-# Apenas redirecionar para WordPress se arquivo NÃO existe
-# Detectar ambiente e usar caminho correto dinamicamente
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-
-# Se for localhost, usar /sg-juridico/index.php
-RewriteCond %{HTTP_HOST} ^localhost [OR]
-RewriteCond %{HTTP_HOST} ^127\.0\.0\.1 [OR]
-RewriteCond %{HTTP_HOST} ^.*\.local
-RewriteRule ^(.*)$ /sg-juridico/index.php [L]
-
-# Senão, usar /index.php (raiz - produção)
-RewriteRule ^(.*)$ /index.php [L]
+RewriteRule . /sg-juridico/index.php [L]
 </IfModule>
+
 # END WordPress

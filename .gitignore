@@ -17,6 +17,10 @@ wp-content/backup*/
 # Plugins e temas de terceiros (não versionar - instalar via WP Admin ou WP-CLI)
 wp-content/plugins/*
 !wp-content/plugins/index.php
+!wp-content/plugins/woocommerce/
+!wp-content/plugins/woo-asaas/
+!wp-content/plugins/woocommerce-extra-checkout-fields-for-brazil/
+!wp-content/plugins/litespeed-cache/
 wp-content/themes/*
 !wp-content/themes/sg-juridico/
 
