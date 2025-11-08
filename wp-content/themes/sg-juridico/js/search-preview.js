@@ -1,7 +1,7 @@
 (function() {
 	'use strict';
 	
-	var searchInput = document.getElementById('header-search-input');
+	var searchInput = document.getElementById('header-search-mobile') || document.getElementById('header-search-input');
 	var searchPreview = document.getElementById('search-preview');
 	var searchPreviewContent = document.getElementById('search-preview-content');
 	var searchTimeout;

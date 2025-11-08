@@ -9,7 +9,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SG_VERSION', '1.0.1' );
+define( 'SG_VERSION', '1.0.9' );
+
+/**
+ * Add aria-current to active nav menu items (desktop accessibility).
+ */
+function sg_nav_menu_aria_current( $atts, $item ) {
+	if ( empty( $item->classes ) ) {
+		return $atts;
+	}
+
+	if ( in_array( 'current-menu-item', $item->classes, true ) || in_array( 'current_page_item', $item->classes, true ) ) {
+		$atts['aria-current'] = 'page';
+	}
+
+	return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'sg_nav_menu_aria_current', 10, 2 );
 
 /**
  * Setup theme defaults
@@ -1898,13 +1914,13 @@ function sg_get_header_cart_markup() {
 	ob_start();
 	?>
 	<div class="header-mini-cart-wrapper<?php echo $cart_count ? ' has-items' : ' is-empty'; ?>" data-cart-count="<?php echo esc_attr( $cart_count ); ?>">
-		<button type="button" class="header-cart-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $dropdown_id ); ?>" aria-label="<?php esc_attr_e( 'Abrir carrinho', 'sg-juridico' ); ?>">
+		<button type="button" class="header-cart-toggle header-icon-btn" aria-expanded="false" aria-controls="<?php echo esc_attr( $dropdown_id ); ?>" aria-label="<?php esc_attr_e( 'Abrir carrinho', 'sg-juridico' ); ?>">
 			<span class="screen-reader-text"><?php esc_html_e( 'Abrir carrinho', 'sg-juridico' ); ?></span>
 			<span class="header-cart-icon" aria-hidden="true">
 				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-					<path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" fill="currentColor" />
-					<path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" fill="currentColor" />
-					<path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19C19.5304 16 20.0391 15.7893 20.4142 15.4142C20.7893 15.0391 21 14.5304 21 14H9.9L9.36 11H19L22 4H6.28L5.28 2H1V1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+					<circle cx="9" cy="20" r="1" stroke="currentColor" stroke-width="2"/>
+					<circle cx="20" cy="20" r="1" stroke="currentColor" stroke-width="2"/>
+					<path d="M1 1H5L7.68 14.39C7.77 14.85 8.17 15.17 8.64 15.17H19.4C19.87 15.17 20.27 14.85 20.36 14.39L22 6H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 				</svg>
 			</span>
 			<span class="header-cart-count-bubble" aria-live="polite" aria-atomic="true"><?php echo esc_html( $cart_count ); ?></span>
