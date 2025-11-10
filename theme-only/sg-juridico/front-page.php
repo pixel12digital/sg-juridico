@@ -20,6 +20,19 @@ get_header();
 				?>
 
 				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
+					<div class="home-calendar-anchor" role="presentation">
+						<a
+							href="#calendario-concursos"
+							class="home-calendar-anchor__button"
+							aria-label="<?php esc_attr_e( 'Ir diretamente para o calendário de concursos', 'sg-juridico' ); ?>"
+						>
+							<span class="home-calendar-anchor__label">
+								<?php esc_html_e( 'Ver calendário de concursos', 'sg-juridico' ); ?>
+							</span>
+							<span class="home-calendar-anchor__icon" aria-hidden="true">↓</span>
+						</a>
+					</div>
+
 					<!-- Categorias Principais -->
 					<section class="home-categories">
 						<div class="section-header">
@@ -27,12 +40,7 @@ get_header();
 						</div>
 						<div class="categories-inline">
 							<?php
-							$main_categories = get_terms( array(
-								'taxonomy'   => 'product_cat',
-								'hide_empty' => false,
-								'parent'     => 0,
-								'number'     => 10,
-							) );
+							$main_categories = sg_get_home_categories_terms();
 							
 							if ( ! empty( $main_categories ) && ! is_wp_error( $main_categories ) ) :
 								foreach ( $main_categories as $category ) :
@@ -65,19 +73,27 @@ get_header();
 							<a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="section-view-all">Ver todos →</a>
 						</div>
 						<?php
-						$featured_products = wc_get_products( array(
-							'limit'    => 8,
-							'status'   => 'publish',
-							'featured' => true,
-						) );
+						$featured_products = sg_get_cached_products(
+							'featured_products',
+							array(
+								'limit'    => 8,
+								'status'   => 'publish',
+								'featured' => true,
+							),
+							900
+						);
 						
 						if ( empty( $featured_products ) ) {
-							$featured_products = wc_get_products( array(
-								'limit'   => 8,
-								'status'  => 'publish',
-								'orderby' => 'date',
-								'order'   => 'DESC',
-							) );
+							$featured_products = sg_get_cached_products(
+								'featured_products_recent',
+								array(
+									'limit'   => 8,
+									'status'  => 'publish',
+									'orderby' => 'date',
+									'order'   => 'DESC',
+								),
+								900
+							);
 						}
 						
 						if ( ! empty( $featured_products ) ) :
@@ -105,6 +121,9 @@ get_header();
 												<?php endif; ?>
 											</div>
 										</a>
+										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
+											Ver detalhes
+										</a>
 									</li>
 								<?php endforeach; ?>
 							</ul>
@@ -118,12 +137,16 @@ get_header();
 							<a href="<?php echo esc_url( add_query_arg( 'orderby', 'popularity', wc_get_page_permalink( 'shop' ) ) ); ?>" class="section-view-all">Ver todos →</a>
 						</div>
 						<?php
-						$best_selling = wc_get_products( array(
-							'limit'   => 3,
-							'status'  => 'publish',
-							'orderby' => 'popularity',
-							'order'   => 'DESC',
-						) );
+						$best_selling = sg_get_cached_products(
+							'best_selling',
+							array(
+								'limit'   => 3,
+								'status'  => 'publish',
+								'orderby' => 'popularity',
+								'order'   => 'DESC',
+							),
+							900
+						);
 						
 						if ( ! empty( $best_selling ) ) :
 						?>
@@ -141,6 +164,9 @@ get_header();
 												</div>
 											</div>
 										</a>
+										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
+											Ver detalhes
+										</a>
 									</li>
 								<?php endforeach; ?>
 							</ul>
@@ -154,12 +180,16 @@ get_header();
 							<a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="section-view-all">Ver todos →</a>
 						</div>
 						<?php
-						$confira_products = wc_get_products( array(
-							'limit'   => 3,
-							'status'  => 'publish',
-							'orderby' => 'date',
-							'order'   => 'DESC',
-						) );
+						$confira_products = sg_get_cached_products(
+							'confira_products',
+							array(
+								'limit'   => 3,
+								'status'  => 'publish',
+								'orderby' => 'date',
+								'order'   => 'DESC',
+							),
+							900
+						);
 						
 						if ( ! empty( $confira_products ) ) :
 						?>
@@ -176,6 +206,9 @@ get_header();
 													<?php echo wp_kses_post( $product->get_price_html() ); ?>
 												</div>
 											</div>
+										</a>
+										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">
+											Ver detalhes
 										</a>
 									</li>
 								<?php endforeach; ?>
@@ -221,17 +254,21 @@ get_header();
 					
 					if ( ! empty( $categories_with_products ) && ! is_wp_error( $categories_with_products ) && isset( $categories_with_products[0] ) ) :
 						$category1 = $categories_with_products[0];
-						$products_cat1 = wc_get_products( array(
-							'limit'      => 3,
-							'status'     => 'publish',
-							'tax_query'  => array(
-								array(
-									'taxonomy' => 'product_cat',
-									'field'    => 'term_id',
-									'terms'    => $category1->term_id,
+						$products_cat1 = sg_get_cached_products(
+							'category_' . $category1->term_id,
+							array(
+								'limit'     => 3,
+								'status'    => 'publish',
+								'tax_query' => array(
+									array(
+										'taxonomy' => 'product_cat',
+										'field'    => 'term_id',
+										'terms'    => $category1->term_id,
+									),
 								),
 							),
-						) );
+							900
+						);
 						
 						if ( ! empty( $products_cat1 ) ) :
 							$cat1_link = get_term_link( $category1, 'product_cat' );
@@ -261,6 +298,13 @@ get_header();
 												<?php endif; ?>
 											</div>
 										</a>
+										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>
+											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">
+												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">
+													Ver detalhes
+												</button>
+											</form>
+										<?php endif; ?>
 									</li>
 								<?php endforeach; ?>
 							</ul>
@@ -274,17 +318,21 @@ get_header();
 					<?php
 					if ( ! empty( $categories_with_products ) && ! is_wp_error( $categories_with_products ) && isset( $categories_with_products[1] ) ) :
 						$category2 = $categories_with_products[1];
-						$products_cat2 = wc_get_products( array(
-							'limit'      => 3,
-							'status'     => 'publish',
-							'tax_query'  => array(
-								array(
-									'taxonomy' => 'product_cat',
-									'field'    => 'term_id',
-									'terms'    => $category2->term_id,
+						$products_cat2 = sg_get_cached_products(
+							'category_' . $category2->term_id,
+							array(
+								'limit'     => 3,
+								'status'    => 'publish',
+								'tax_query' => array(
+									array(
+										'taxonomy' => 'product_cat',
+										'field'    => 'term_id',
+										'terms'    => $category2->term_id,
+									),
 								),
 							),
-						) );
+							900
+						);
 						
 						if ( ! empty( $products_cat2 ) ) :
 							$cat2_link = get_term_link( $category2, 'product_cat' );
@@ -314,6 +362,13 @@ get_header();
 												<?php endif; ?>
 											</div>
 										</a>
+										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>
+											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">
+												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">
+													Ver detalhes
+												</button>
+											</form>
+										<?php endif; ?>
 									</li>
 								<?php endforeach; ?>
 							</ul>
