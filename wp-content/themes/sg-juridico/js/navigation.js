@@ -76,6 +76,16 @@
 		}
 	}
 
+	function resetSubmenus() {
+		const openSubmenus = navigation.querySelectorAll('.menu-item-open');
+		openSubmenus.forEach(function(item) {
+			item.classList.remove('menu-item-open');
+		});
+		menuItemsWithChildren.forEach(function(link) {
+			link.removeAttribute('aria-expanded');
+		});
+	}
+
 	function closeNav() {
 		if (!navigation.classList.contains('is-open')) {
 			return;
@@ -85,6 +95,7 @@
 		navigation.setAttribute('aria-modal', 'false');
 		toggle.setAttribute('aria-expanded', 'false');
 		document.body.classList.remove('mobile-nav-open');
+		resetSubmenus();
 		releaseFocus();
 		if (lastFocused && typeof lastFocused.focus === 'function') {
 			lastFocused.focus();
@@ -151,10 +162,19 @@
 		if (event.defaultPrevented) {
 			return;
 		}
-		const target = event.target;
-		if (target && target.tagName === 'A') {
-			closeNav();
+		const targetElement = event.target;
+		if (!targetElement || typeof targetElement.closest !== 'function') {
+			return;
 		}
+		const link = targetElement.closest('a');
+		if (!link) {
+			return;
+		}
+		const parentItem = link.parentElement;
+		if (parentItem && parentItem.classList.contains('menu-item-has-children') && isMobileNavigation()) {
+			return;
+		}
+		closeNav();
 	});
 
 	function handleBreakpointChange(e) {
@@ -207,18 +227,27 @@
 	// Toggle de submenu no mobile
 	const menuItemsWithChildren = document.querySelectorAll('.menu-item-has-children > a');
 
+	function isMobileNavigation() {
+		// Considera mobile sempre que o breakpoint desktop não estiver ativo
+		// ou quando o menu móvel estiver aberto forçadamente.
+		return !desktopBreakpoint.matches || navigation.classList.contains('is-open');
+	}
+
 	menuItemsWithChildren.forEach(function(item) {
 		item.addEventListener('click', function(e) {
 			// Só prevenir default no mobile
-			if (window.innerWidth <= 768) {
+			if (isMobileNavigation()) {
 				e.preventDefault();
 				const parentItem = this.parentElement;
-				parentItem.classList.toggle('menu-item-open');
-				
+				const isOpen = parentItem.classList.toggle('menu-item-open');
+				item.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
 				// Fechar outros submenus
 				menuItemsWithChildren.forEach(function(otherItem) {
 					if (otherItem !== item) {
-						otherItem.parentElement.classList.remove('menu-item-open');
+						const otherParent = otherItem.parentElement;
+						otherParent.classList.remove('menu-item-open');
+						otherItem.removeAttribute('aria-expanded');
 					}
 				});
 			}

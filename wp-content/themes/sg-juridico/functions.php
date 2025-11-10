@@ -3109,11 +3109,17 @@ add_action( 'wp_head', 'sg_inline_styles_my_account', 999 );
 function sg_get_concurso_events( $limit = 10, $categoria = null ) {
 	global $wpdb;
 	
-	// Cache de 5 minutos para reduzir consultas ao banco
+	// Cache de 30 minutos para reduzir consultas ao banco
+	static $local_cache = array();
 	$cache_key = 'sg_concurso_events_' . md5( serialize( array( $limit, $categoria ) ) );
-	$cached = wp_cache_get( $cache_key, 'sg_events' );
 	
+	if ( isset( $local_cache[ $cache_key ] ) ) {
+		return $local_cache[ $cache_key ];
+	}
+
+	$cached = get_transient( $cache_key );
 	if ( false !== $cached ) {
+		$local_cache[ $cache_key ] = $cached;
 		return $cached;
 	}
 	
@@ -3291,7 +3297,8 @@ function sg_get_concurso_events( $limit = 10, $categoria = null ) {
 	$result = array_slice( $events, 0, $limit );
 	
 	// Armazenar no cache por 5 minutos
-	wp_cache_set( $cache_key, $result, 'sg_events', 300 );
+	set_transient( $cache_key, $result, 1800 );
+	$local_cache[ $cache_key ] = $result;
 	
 	return $result;
 }
@@ -3304,11 +3311,18 @@ function sg_get_concurso_events( $limit = 10, $categoria = null ) {
 function sg_get_all_calendar_events() {
 	global $wpdb;
 	
-	// Cache de 10 minutos para reduzir consultas ao banco
+	// Cache de 30 minutos para reduzir consultas ao banco
 	$cache_key = 'sg_all_calendar_events';
-	$cached = wp_cache_get( $cache_key, 'sg_events' );
+	static $local_cache = array();
+	
+	if ( isset( $local_cache[ $cache_key ] ) ) {
+		return $local_cache[ $cache_key ];
+	}
+
+	$cached = get_transient( $cache_key );
 	
 	if ( false !== $cached ) {
+		$local_cache[ $cache_key ] = $cached;
 		return $cached;
 	}
 	
@@ -3429,9 +3443,96 @@ function sg_get_all_calendar_events() {
 	} );
 	
 	// Armazenar no cache por 10 minutos
-	wp_cache_set( $cache_key, $events, 'sg_events', 600 );
+	set_transient( $cache_key, $events, 1800 );
+	$local_cache[ $cache_key ] = $events;
 	
 	return $events;
+}
+
+/**
+ * Recupera versão atual do cache de produtos.
+ */
+function sg_get_product_cache_version() {
+	$version = get_option( 'sg_product_cache_version', 1 );
+	if ( ! is_numeric( $version ) || $version < 1 ) {
+		$version = 1;
+		update_option( 'sg_product_cache_version', $version, false );
+	}
+	return (int) $version;
+}
+
+/**
+ * Incrementa versão do cache de produtos e limpa caches relacionados.
+ */
+function sg_bump_product_cache_version() {
+	$version = sg_get_product_cache_version();
+	update_option( 'sg_product_cache_version', $version + 1, false );
+	delete_transient( 'sg_home_categories_terms' );
+}
+
+add_action( 'save_post_product', 'sg_bump_product_cache_version' );
+add_action( 'deleted_post', function( $post_id ) {
+	if ( 'product' === get_post_type( $post_id ) ) {
+		sg_bump_product_cache_version();
+	}
+} );
+add_action( 'trashed_post', function( $post_id ) {
+	if ( 'product' === get_post_type( $post_id ) ) {
+		sg_bump_product_cache_version();
+	}
+} );
+add_action( 'created_product_cat', 'sg_bump_product_cache_version' );
+add_action( 'edited_product_cat', 'sg_bump_product_cache_version' );
+add_action( 'delete_product_cat', 'sg_bump_product_cache_version' );
+
+/**
+ * Obtém produtos com cache baseado em transients.
+ *
+ * @param string $key  Identificador amigável do cache.
+ * @param array  $args Argumentos usados em wc_get_products.
+ * @param int    $ttl  Tempo de vida do cache em segundos.
+ * @return array
+ */
+function sg_get_cached_products( $key, $args, $ttl = 900 ) {
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return array();
+	}
+
+	$version      = sg_get_product_cache_version();
+	$cache_key    = sprintf( 'sg_wc_%s_%s_v%s', $key, md5( wp_json_encode( $args ) ), $version );
+	$cached_items = get_transient( $cache_key );
+
+	if ( false !== $cached_items ) {
+		return $cached_items;
+	}
+
+	$products = wc_get_products( $args );
+	set_transient( $cache_key, $products, $ttl );
+	return $products;
+}
+
+/**
+ * Recupera categorias principais com cache.
+ *
+ * @return array<int, WP_Term>
+ */
+function sg_get_home_categories_terms() {
+	$cache_key = 'sg_home_categories_terms';
+	$cached    = get_transient( $cache_key );
+
+	if ( false !== $cached ) {
+		return $cached;
+	}
+
+	$terms = get_terms( array(
+		'taxonomy'   => 'product_cat',
+		'hide_empty' => false,
+		'parent'     => 0,
+		'number'     => 10,
+	) );
+
+	set_transient( $cache_key, $terms, 1800 );
+	return $terms;
 }
 
 /**
@@ -3443,14 +3544,14 @@ function sg_clear_events_cache( $post_id ) {
 	// Se for um evento (sg_eventos, ETN ou tribe_events), limpar cache
 	if ( in_array( $post_type, array( 'sg_eventos', 'etn', 'tribe_events' ) ) ) {
 		// Limpar cache principal
-		wp_cache_delete( 'sg_all_calendar_events', 'sg_events' );
+		delete_transient( 'sg_all_calendar_events' );
 		// Limpar possíveis caches de consultas específicas
 		// Tentamos limpar os padrões mais comuns de cache key
 		for ( $limit = 10; $limit <= 50; $limit += 10 ) {
-			wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( $limit, null ) ) ), 'sg_events' );
-			wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( $limit, 'ministerio-publico' ) ) ), 'sg_events' );
-			wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( $limit, 'magistratura' ) ) ), 'sg_events' );
-			wp_cache_delete( 'sg_concurso_events_' . md5( serialize( array( $limit, 'delegado' ) ) ), 'sg_events' );
+			delete_transient( 'sg_concurso_events_' . md5( serialize( array( $limit, null ) ) ) );
+			delete_transient( 'sg_concurso_events_' . md5( serialize( array( $limit, 'ministerio-publico' ) ) ) );
+			delete_transient( 'sg_concurso_events_' . md5( serialize( array( $limit, 'magistratura' ) ) ) );
+			delete_transient( 'sg_concurso_events_' . md5( serialize( array( $limit, 'delegado' ) ) ) );
 		}
 	}
 }
@@ -3518,9 +3619,23 @@ function sg_add_categories_to_cursos_menu( $items, $args ) {
 			) );
 			
 			if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) {
+				if ( ! is_array( $item->classes ) ) {
+					$item->classes = array();
+				}
+
+				if ( ! in_array( 'menu-item-has-children', $item->classes, true ) ) {
+					$item->classes[] = 'menu-item-has-children';
+				}
+
+				if ( ! in_array( 'menu-item-has-dynamic-children', $item->classes, true ) ) {
+					$item->classes[] = 'menu-item-has-dynamic-children';
+				}
+
 				// Primeiro adicionar "Todos os Cursos"
 				$shop_url = wc_get_page_permalink( 'shop' );
 				if ( $shop_url ) {
+					$next_menu_order = isset( $item->menu_order ) ? (int) $item->menu_order + 1 : 1;
+
 					$todos_item = new stdClass();
 					$todos_item->ID = 999999;
 					$todos_item->db_id = 999999;
@@ -3534,13 +3649,14 @@ function sg_add_categories_to_cursos_menu( $items, $args ) {
 					$todos_item->target = '';
 					$todos_item->attr_title = '';
 					$todos_item->description = '';
-					$todos_item->classes = array( '' );
+					$todos_item->classes = array( 'menu-item', 'menu-item-type-custom', 'menu-item-object-custom', 'menu-item-dynamic' );
 					$todos_item->xfn = '';
 					$todos_item->current = false;
 					$todos_item->current_item_ancestor = false;
 					$todos_item->current_item_parent = false;
 					$todos_item->post_parent = 0;
 					$todos_item->post_type = 'nav_menu_item';
+					$todos_item->menu_order = $next_menu_order;
 					
 					// Adicionar após o item "Cursos"
 					$item_index = array_search( $item, $items );
@@ -3549,6 +3665,7 @@ function sg_add_categories_to_cursos_menu( $items, $args ) {
 						
 						// Adicionar categorias
 						$menu_order = $item_index + 2;
+						$next_menu_order++;
 						foreach ( $categories as $category ) {
 							$cat_link = get_term_link( $category, 'product_cat' );
 							
@@ -3570,16 +3687,18 @@ function sg_add_categories_to_cursos_menu( $items, $args ) {
 							$cat_item->target = '';
 							$cat_item->attr_title = '';
 							$cat_item->description = '';
-							$cat_item->classes = array( '' );
+							$cat_item->classes = array( 'menu-item', 'menu-item-type-taxonomy', 'menu-item-object-product_cat', 'menu-item-dynamic' );
 							$cat_item->xfn = '';
 							$cat_item->current = false;
 							$cat_item->current_item_ancestor = false;
 							$cat_item->current_item_parent = false;
 							$cat_item->post_parent = 0;
 							$cat_item->post_type = 'nav_menu_item';
+							$cat_item->menu_order = $next_menu_order;
 							
 							array_splice( $items, $menu_order, 0, array( $cat_item ) );
 							$menu_order++;
+							$next_menu_order++;
 						}
 					}
 				}
