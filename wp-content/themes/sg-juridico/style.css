@@ -820,6 +820,16 @@ body.header-cart-overlay-open {
 	max-height: calc(85vh - 180px);
 }
 
+@media (min-width: 1025px) {
+	.header-actions {
+		gap: 22px;
+	}
+
+	.header-mini-cart-wrapper {
+		margin-right: 26px;
+	}
+}
+
 @media (max-width: 768px) {
 	.header-mini-cart-wrapper {
 		margin-right: 0;

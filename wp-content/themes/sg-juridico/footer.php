@@ -203,7 +203,7 @@
 </footer>
 
 <a
-	href="https://wa.me/5561998290129"
+	href="<?php echo esc_url( sg_get_whatsapp_link() ); ?>"
 	class="floating-whatsapp"
 	target="_blank"
 	rel="noopener noreferrer"

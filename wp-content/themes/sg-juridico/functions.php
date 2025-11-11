@@ -2092,10 +2092,10 @@ function sg_get_page_url_by_slug( $slug, $default_url = '#' ) {
  */
 function sg_get_company_info( $info = '' ) {
 	$company_info = array(
-		'cnpj'      => '00.000.000/0001-00', // Configure seu CNPJ aqui
-		'instagram' => 'https://instagram.com/sgjuridico', // Configure seu Instagram aqui
-		'whatsapp'  => '5511999999999', // Configure seu WhatsApp aqui (formato: 5511999999999)
-		'whatsapp_display' => '(11) 99999-9999', // Formato para exibição
+		'cnpj'      => '53.770.198/0001-59', // Configure seu CNPJ aqui
+		'instagram' => 'https://www.instagram.com/sg_juridico/', // Configure seu Instagram aqui
+		'whatsapp'  => '5561998290129', // Configure seu WhatsApp aqui (formato: 5511999999999)
+		'whatsapp_display' => '(61) 99829-0129', // Formato para exibição
 	);
 
 	if ( ! empty( $info ) && isset( $company_info[ $info ] ) ) {
