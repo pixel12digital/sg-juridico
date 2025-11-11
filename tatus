@@ -1,0 +1,244 @@
+warning: in the working copy of 'front-page-prod.php', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/front-page-prod.php b/theme-only/sg-juridico/front-page.php[m
+[1mindex 1352b99..c0f2868 100644[m
+[1m--- a/front-page-prod.php[m
+[1m+++ b/theme-only/sg-juridico/front-page.php[m
+[36m@@ -20,19 +20,6 @@[m [mget_header();[m
+ 				?>[m
+ [m
+ 				<?php if ( class_exists( 'WooCommerce' ) ) : ?>[m
+[31m-					<div class="home-calendar-anchor" role="presentation">[m
+[31m-						<a[m
+[31m-							href="#calendario-concursos"[m
+[31m-							class="home-calendar-anchor__button"[m
+[31m-							aria-label="<?php esc_attr_e( 'Ir diretamente para o calendário de concursos', 'sg-juridico' ); ?>"[m
+[31m-						>[m
+[31m-							<span class="home-calendar-anchor__label">[m
+[31m-								<?php esc_html_e( 'Ver calendário de concursos', 'sg-juridico' ); ?>[m
+[31m-							</span>[m
+[31m-							<span class="home-calendar-anchor__icon" aria-hidden="true">↓</span>[m
+[31m-						</a>[m
+[31m-					</div>[m
+[31m-[m
+ 					<!-- Categorias Principais -->[m
+ 					<section class="home-categories">[m
+ 						<div class="section-header">[m
+[36m@@ -40,7 +27,12 @@[m [mget_header();[m
+ 						</div>[m
+ 						<div class="categories-inline">[m
+ 							<?php[m
+[31m-							$main_categories = sg_get_home_categories_terms();[m
+[32m+[m							[32m$main_categories = get_terms( array([m
+[32m+[m								[32m'taxonomy'   => 'product_cat',[m
+[32m+[m								[32m'hide_empty' => false,[m
+[32m+[m								[32m'parent'     => 0,[m
+[32m+[m								[32m'number'     => 10,[m
+[32m+[m							[32m) );[m
+ 							[m
+ 							if ( ! empty( $main_categories ) && ! is_wp_error( $main_categories ) ) :[m
+ 								foreach ( $main_categories as $category ) :[m
+[36m@@ -73,27 +65,19 @@[m [mget_header();[m
+ 							<a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="section-view-all">Ver todos →</a>[m
+ 						</div>[m
+ 						<?php[m
+[31m-						$featured_products = sg_get_cached_products([m
+[31m-							'featured_products',[m
+[31m-							array([m
+[31m-								'limit'    => 8,[m
+[31m-								'status'   => 'publish',[m
+[31m-								'featured' => true,[m
+[31m-							),[m
+[31m-							900[m
+[31m-						);[m
+[32m+[m						[32m$featured_products = wc_get_products( array([m
+[32m+[m							[32m'limit'    => 8,[m
+[32m+[m							[32m'status'   => 'publish',[m
+[32m+[m							[32m'featured' => true,[m
+[32m+[m						[32m) );[m
+ 						[m
+ 						if ( empty( $featured_products ) ) {[m
+[31m-							$featured_products = sg_get_cached_products([m
+[31m-								'featured_products_recent',[m
+[31m-								array([m
+[31m-									'limit'   => 8,[m
+[31m-									'status'  => 'publish',[m
+[31m-									'orderby' => 'date',[m
+[31m-									'order'   => 'DESC',[m
+[31m-								),[m
+[31m-								900[m
+[31m-							);[m
+[32m+[m							[32m$featured_products = wc_get_products( array([m
+[32m+[m								[32m'limit'   => 8,[m
+[32m+[m								[32m'status'  => 'publish',[m
+[32m+[m								[32m'orderby' => 'date',[m
+[32m+[m								[32m'order'   => 'DESC',[m
+[32m+[m							[32m) );[m
+ 						}[m
+ 						[m
+ 						if ( ! empty( $featured_products ) ) :[m
+[36m@@ -121,9 +105,6 @@[m [mget_header();[m
+ 												<?php endif; ?>[m
+ 											</div>[m
+ 										</a>[m
+[31m-										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">[m
+[31m-											Ver detalhes[m
+[31m-										</a>[m
+ 									</li>[m
+ 								<?php endforeach; ?>[m
+ 							</ul>[m
+[36m@@ -137,16 +118,12 @@[m [mget_header();[m
+ 							<a href="<?php echo esc_url( add_query_arg( 'orderby', 'popularity', wc_get_page_permalink( 'shop' ) ) ); ?>" class="section-view-all">Ver todos →</a>[m
+ 						</div>[m
+ 						<?php[m
+[31m-						$best_selling = sg_get_cached_products([m
+[31m-							'best_selling',[m
+[31m-							array([m
+[31m-								'limit'   => 3,[m
+[31m-								'status'  => 'publish',[m
+[31m-								'orderby' => 'popularity',[m
+[31m-								'order'   => 'DESC',[m
+[31m-							),[m
+[31m-							900[m
+[31m-						);[m
+[32m+[m						[32m$best_selling = wc_get_products( array([m
+[32m+[m							[32m'limit'   => 3,[m
+[32m+[m							[32m'status'  => 'publish',[m
+[32m+[m							[32m'orderby' => 'popularity',[m
+[32m+[m							[32m'order'   => 'DESC',[m
+[32m+[m						[32m) );[m
+ 						[m
+ 						if ( ! empty( $best_selling ) ) :[m
+ 						?>[m
+[36m@@ -164,9 +141,6 @@[m [mget_header();[m
+ 												</div>[m
+ 											</div>[m
+ 										</a>[m
+[31m-										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">[m
+[31m-											Ver detalhes[m
+[31m-										</a>[m
+ 									</li>[m
+ 								<?php endforeach; ?>[m
+ 							</ul>[m
+[36m@@ -180,16 +154,12 @@[m [mget_header();[m
+ 							<a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="section-view-all">Ver todos →</a>[m
+ 						</div>[m
+ 						<?php[m
+[31m-						$confira_products = sg_get_cached_products([m
+[31m-							'confira_products',[m
+[31m-							array([m
+[31m-								'limit'   => 3,[m
+[31m-								'status'  => 'publish',[m
+[31m-								'orderby' => 'date',[m
+[31m-								'order'   => 'DESC',[m
+[31m-							),[m
+[31m-							900[m
+[31m-						);[m
+[32m+[m						[32m$confira_products = wc_get_products( array([m
+[32m+[m							[32m'limit'   => 3,[m
+[32m+[m							[32m'status'  => 'publish',[m
+[32m+[m							[32m'orderby' => 'date',[m
+[32m+[m							[32m'order'   => 'DESC',[m
+[32m+[m						[32m) );[m
+ 						[m
+ 						if ( ! empty( $confira_products ) ) :[m
+ 						?>[m
+[36m@@ -207,9 +177,6 @@[m [mget_header();[m
+ 												</div>[m
+ 											</div>[m
+ 										</a>[m
+[31m-										<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="product-add-to-cart-btn">[m
+[31m-											Ver detalhes[m
+[31m-										</a>[m
+ 									</li>[m
+ 								<?php endforeach; ?>[m
+ 							</ul>[m
+[36m@@ -254,21 +221,17 @@[m [mget_header();[m
+ 					[m
+ 					if ( ! empty( $categories_with_products ) && ! is_wp_error( $categories_with_products ) && isset( $categories_with_products[0] ) ) :[m
+ 						$category1 = $categories_with_products[0];[m
+[31m-						$products_cat1 = sg_get_cached_products([m
+[31m-							'category_' . $category1->term_id,[m
+[31m-							array([m
+[31m-								'limit'     => 3,[m
+[31m-								'status'    => 'publish',[m
+[31m-								'tax_query' => array([m
+[31m-									array([m
+[31m-										'taxonomy' => 'product_cat',[m
+[31m-										'field'    => 'term_id',[m
+[31m-										'terms'    => $category1->term_id,[m
+[31m-									),[m
+[32m+[m						[32m$products_cat1 = wc_get_products( array([m
+[32m+[m							[32m'limit'      => 3,[m
+[32m+[m							[32m'status'     => 'publish',[m
+[32m+[m							[32m'tax_query'  => array([m
+[32m+[m								[32marray([m
+[32m+[m									[32m'taxonomy' => 'product_cat',[m
+[32m+[m									[32m'field'    => 'term_id',[m
+[32m+[m									[32m'terms'    => $category1->term_id,[m
+ 								),[m
+ 							),[m
+[31m-							900[m
+[31m-						);[m
+[32m+[m						[32m) );[m
+ 						[m
+ 						if ( ! empty( $products_cat1 ) ) :[m
+ 							$cat1_link = get_term_link( $category1, 'product_cat' );[m
+[36m@@ -298,13 +261,6 @@[m [mget_header();[m
+ 												<?php endif; ?>[m
+ 											</div>[m
+ 										</a>[m
+[31m-										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>[m
+[31m-											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">[m
+[31m-												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">[m
+[31m-													Ver detalhes[m
+[31m-												</button>[m
+[31m-											</form>[m
+[31m-										<?php endif; ?>[m
+ 									</li>[m
+ 								<?php endforeach; ?>[m
+ 							</ul>[m
+[36m@@ -318,21 +274,17 @@[m [mget_header();[m
+ 					<?php[m
+ 					if ( ! empty( $categories_with_products ) && ! is_wp_error( $categories_with_products ) && isset( $categories_with_products[1] ) ) :[m
+ 						$category2 = $categories_with_products[1];[m
+[31m-						$products_cat2 = sg_get_cached_products([m
+[31m-							'category_' . $category2->term_id,[m
+[31m-							array([m
+[31m-								'limit'     => 3,[m
+[31m-								'status'    => 'publish',[m
+[31m-								'tax_query' => array([m
+[31m-									array([m
+[31m-										'taxonomy' => 'product_cat',[m
+[31m-										'field'    => 'term_id',[m
+[31m-										'terms'    => $category2->term_id,[m
+[31m-									),[m
+[32m+[m						[32m$products_cat2 = wc_get_products( array([m
+[32m+[m							[32m'limit'      => 3,[m
+[32m+[m							[32m'status'     => 'publish',[m
+[32m+[m							[32m'tax_query'  => array([m
+[32m+[m								[32marray([m
+[32m+[m									[32m'taxonomy' => 'product_cat',[m
+[32m+[m									[32m'field'    => 'term_id',[m
+[32m+[m									[32m'terms'    => $category2->term_id,[m
+ 								),[m
+ 							),[m
+[31m-							900[m
+[31m-						);[m
+[32m+[m						[32m) );[m
+ 						[m
+ 						if ( ! empty( $products_cat2 ) ) :[m
+ 							$cat2_link = get_term_link( $category2, 'product_cat' );[m
+[36m@@ -362,13 +314,6 @@[m [mget_header();[m
+ 												<?php endif; ?>[m
+ 											</div>[m
+ 										</a>[m
+[31m-										<?php if ( $product->is_purchasable() && $product->is_in_stock() ) : ?>[m
+[31m-											<form class="cart" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post" enctype="multipart/form-data">[m
+[31m-												<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" class="product-add-to-cart-btn">[m
+[31m-													Ver detalhes[m
+[31m-												</button>[m
+[31m-											</form>[m
+[31m-										<?php endif; ?>[m
+ 									</li>[m
+ 								<?php endforeach; ?>[m
+ 							</ul>[m
